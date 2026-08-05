@@ -12,8 +12,6 @@
 | Arquitectura técnica de la solución | Listo | Diagrama de componentes |
 | Pantallas de alta fidelidad, desktop y móvil, de todos los módulos | En generación | **Google Stitch** |
 
-Los prompts completos para generar las pantallas de alta fidelidad están en **[[13 Prompt de Google Stitch]]**.
-
 ---
 
 ## Boceto de dashboard

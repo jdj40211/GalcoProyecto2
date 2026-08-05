@@ -137,4 +137,4 @@ Fondo blanco, radio 12 px, sombra suave. Etiqueta arriba en 12 px `#4B5563` may�
 
 ---
 
-**Anterior:** [[10 Competencia y ventaja competitiva]] · **Siguiente:** [[13 Prompt de Google Stitch]]
+**Anterior:** [[10 Competencia y ventaja competitiva]] · **Siguiente:** [[14 Mockups]]

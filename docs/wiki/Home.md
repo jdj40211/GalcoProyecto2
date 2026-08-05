@@ -36,7 +36,6 @@ Diseño de un **sistema interno todo en uno** para **GALCO S.A.S.** (Itagüí, A
 
 ### Entrega
 - **[[12 Manual de marca y diseno]]** — colores oficiales, tipografía y reglas de UI
-- **[[13 Prompt de Google Stitch]]** — prompts listos para generar todas las pantallas
 
 ---
 
