@@ -46,6 +46,7 @@ Copia espejo en [`docs/wiki/`](docs/wiki):
 | [Stack tecnológico](docs/wiki/09-Stack-tecnologico.md) | Tecnologías y decisiones de arquitectura |
 | [Competencia y ventaja](docs/wiki/10-Competencia-y-ventaja-competitiva.md) | Comparativo de mercado |
 | [Manual de marca](docs/wiki/12-Manual-de-marca-y-diseno.md) | Sistema de diseño completo |
+| [Mockups](docs/wiki/14-Mockups.md) | Las 28 pantallas de la aplicación |
 
 ---
 

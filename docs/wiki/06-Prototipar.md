@@ -10,7 +10,9 @@
 |---|---|---|
 | Boceto de dashboard (indicadores clave + tabla de cotizaciones) | Listo | Boceto de baja fidelidad |
 | Arquitectura técnica de la solución | Listo | Diagrama de componentes |
-| Pantallas de alta fidelidad, desktop y móvil, de todos los módulos | En generación | **Google Stitch** |
+| Pantallas de alta fidelidad, escritorio y móvil, de todos los módulos | **Listo · 28 pantallas** | Prototipo de alta fidelidad |
+
+Las 28 pantallas terminadas están en **[[14 Mockups]]**.
 
 ---
 

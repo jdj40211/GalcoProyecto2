@@ -36,6 +36,7 @@ Diseño de un **sistema interno todo en uno** para **GALCO S.A.S.** (Itagüí, A
 
 ### Entrega
 - **[[12 Manual de marca y diseno]]** — colores oficiales, tipografía y reglas de UI
+- **[[14 Mockups]]** — las 28 pantallas de la aplicación en alta fidelidad
 
 ---
 
