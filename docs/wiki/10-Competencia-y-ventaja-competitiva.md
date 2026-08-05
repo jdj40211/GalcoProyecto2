@@ -69,4 +69,4 @@ Integración directa con **facturación electrónica DIAN** y notificaciones por
 
 ---
 
-**Anterior:** [[09 Stack tecnologico]] · **Siguiente:** [[11 Guion de sustentacion]]
+**Anterior:** [[09 Stack tecnologico]] · **Siguiente:** [[12 Manual de marca y diseno]]

@@ -45,7 +45,6 @@ Copia espejo en [`docs/wiki/`](docs/wiki):
 | [Arquitectura](docs/wiki/08-Arquitectura.md) | Arquitectura por capas y diagramas |
 | [Stack tecnológico](docs/wiki/09-Stack-tecnologico.md) | Tecnologías y decisiones de arquitectura |
 | [Competencia y ventaja](docs/wiki/10-Competencia-y-ventaja-competitiva.md) | Comparativo de mercado |
-| [Guion de sustentación](docs/wiki/11-Guion-de-sustentacion.md) | Guion del pitch del Sprint 0 |
 | [Manual de marca](docs/wiki/12-Manual-de-marca-y-diseno.md) | Sistema de diseño completo |
 | [Prompts de Google Stitch](docs/wiki/13-Prompt-de-Google-Stitch.md) | Prompts para generar todas las pantallas |
 

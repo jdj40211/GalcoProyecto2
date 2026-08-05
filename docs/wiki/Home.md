@@ -35,7 +35,6 @@ Diseño de un **sistema interno todo en uno** para **GALCO S.A.S.** (Itagüí, A
 - **[[10 Competencia y ventaja competitiva]]** — Odoo, Zoho One, Bitrix24 y dónde ganamos
 
 ### Entrega
-- **[[11 Guion de sustentacion]]** — qué dice cada quién y en cuánto tiempo
 - **[[12 Manual de marca y diseno]]** — colores oficiales, tipografía y reglas de UI
 - **[[13 Prompt de Google Stitch]]** — prompts listos para generar todas las pantallas
 
