@@ -35,6 +35,11 @@ async function registerFrontend(server) {
       }
 
       const normalizedRequestedPath = path.posix.normalize(requestedPath).replace(/^(\.\.(\/|\\|$))+/, '');
+      const normalizedSegments = normalizedRequestedPath.split('/');
+      if (normalizedSegments.includes('..')) {
+        return h.file(entryFile);
+      }
+
       const candidate = path.resolve(frontendDirectoryReal, normalizedRequestedPath);
       const relativeToRoot = path.relative(frontendDirectoryReal, candidate);
       const isInsideFrontend = relativeToRoot === '' || (!relativeToRoot.startsWith('..') && !path.isAbsolute(relativeToRoot));
