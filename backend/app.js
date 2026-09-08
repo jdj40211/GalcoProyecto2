@@ -27,12 +27,25 @@ async function registerFrontend(server) {
       if (requestedPath === 'api' || requestedPath.startsWith('api/')) {
         return h.response({ ok: false, message: 'Recurso API no encontrado.' }).code(404);
       }
-      const candidate = path.resolve(frontendDirectoryReal, requestedPath);
-      const exists = fs.existsSync(candidate);
-      const candidateReal = exists ? fs.realpathSync(candidate) : null;
-      const relative = candidateReal ? path.relative(frontendDirectoryReal, candidateReal) : '..';
-      const isInsideFrontend = candidateReal && (relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative)));
-      const isFile = Boolean(isInsideFrontend) && fs.statSync(candidateReal).isFile();
+
+      const hasOnlySafeChars = /^[A-Za-z0-9._/-]*$/.test(requestedPath);
+      const hasInvalidSegments = requestedPath.includes('\0') || requestedPath.includes('\\') || path.isAbsolute(requestedPath);
+      if (!hasOnlySafeChars || hasInvalidSegments) {
+        return h.file(entryFile);
+      }
+
+      const normalizedRequestedPath = path.posix.normalize(requestedPath).replace(/^(\.\.(\/|\\|$))+/, '');
+      const candidate = path.resolve(frontendDirectoryReal, normalizedRequestedPath);
+      const relativeToRoot = path.relative(frontendDirectoryReal, candidate);
+      const isInsideFrontend = relativeToRoot === '' || (!relativeToRoot.startsWith('..') && !path.isAbsolute(relativeToRoot));
+      if (!isInsideFrontend || !fs.existsSync(candidate)) {
+        return h.file(entryFile);
+      }
+
+      const candidateReal = fs.realpathSync(candidate);
+      const realRelativeToRoot = path.relative(frontendDirectoryReal, candidateReal);
+      const isInsideFrontendReal = realRelativeToRoot === '' || (!realRelativeToRoot.startsWith('..') && !path.isAbsolute(realRelativeToRoot));
+      const isFile = isInsideFrontendReal && fs.statSync(candidateReal).isFile();
       return h.file(isFile ? candidateReal : entryFile);
     }
   });
