@@ -88,8 +88,8 @@ function onDrop(event) {
 function validate(file) {
   if (!file || file.size === 0) return 'El archivo está vacío.';
   if (file.size > fileRules.maxBytes) return 'El archivo supera el tamaño máximo de 10 MB.';
-  const extension = file.name.split('.').pop()?.toLowerCase();
-  if (!fileRules.mimeTypes.includes(file.type) && !fileRules.extensions.includes(extension))
+  const extension = file.name.split('.').pop()?.toLowerCase() || '';
+  if (!fileRules.mimeTypes.includes(file.type) || !fileRules.extensions.includes(extension))
     return 'Formato no permitido. Usa JPG, JPEG, PNG o PDF.';
   return '';
 }
