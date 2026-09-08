@@ -38,11 +38,17 @@ async function registerFrontend(server) {
       const candidate = path.resolve(frontendDirectoryReal, normalizedRequestedPath);
       const relativeToRoot = path.relative(frontendDirectoryReal, candidate);
       const isInsideFrontend = relativeToRoot === '' || (!relativeToRoot.startsWith('..') && !path.isAbsolute(relativeToRoot));
-      if (!isInsideFrontend || !fs.existsSync(candidate)) {
+      if (!isInsideFrontend) {
         return h.file(entryFile);
       }
 
-      const candidateReal = fs.realpathSync(candidate);
+      let candidateReal;
+      try {
+        candidateReal = fs.realpathSync(candidate);
+      } catch (_) {
+        return h.file(entryFile);
+      }
+
       const realRelativeToRoot = path.relative(frontendDirectoryReal, candidateReal);
       const isInsideFrontendReal = realRelativeToRoot === '' || (!realRelativeToRoot.startsWith('..') && !path.isAbsolute(realRelativeToRoot));
       const isFile = isInsideFrontendReal && fs.statSync(candidateReal).isFile();
