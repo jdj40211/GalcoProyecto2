@@ -15,7 +15,7 @@
     "@hapi/boom": "10.0.1",
     "@hapi/hapi": "21.4.8",
     "@hapi/inert": "7.1.2",
-    "dotenv": "16.4.7",
+    "dotenv": "17.4.2",
     "firebase-admin": "13.10.0",
     "handlebars": "4.7.9",
     "joi": "17.13.7",
