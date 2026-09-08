@@ -11,9 +11,8 @@ http.interceptors.request.use(async (config) => {
   const auth = useAuthStore();
   const token = await auth.getToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
-  if (auth.user) {
-    config.headers['X-Dev-User'] = encodeURIComponent(JSON.stringify(auth.user));
-  }
+  const devMode = import.meta.env.VITE_AUTH_BYPASS === 'true' || !import.meta.env.VITE_FIREBASE_API_KEY;
+  if (devMode && auth.user) config.headers['X-Dev-User'] = encodeURIComponent(JSON.stringify(auth.user));
   return config;
 });
 
