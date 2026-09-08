@@ -9,6 +9,7 @@ async function registerFrontend(server) {
   if (!config.serveFrontend) return;
 
   const frontendDirectory = path.resolve(__dirname, '../frontend/dist');
+  const frontendDirectoryReal = fs.realpathSync(frontendDirectory);
   const entryFile = path.join(frontendDirectory, 'index.html');
   if (!fs.existsSync(entryFile)) {
     throw new Error(
@@ -26,11 +27,13 @@ async function registerFrontend(server) {
       if (requestedPath === 'api' || requestedPath.startsWith('api/')) {
         return h.response({ ok: false, message: 'Recurso API no encontrado.' }).code(404);
       }
-      const candidate = path.resolve(frontendDirectory, requestedPath);
-      const relative = path.relative(frontendDirectory, candidate);
-      const isInsideFrontend = relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
-      const isFile = isInsideFrontend && fs.existsSync(candidate) && fs.statSync(candidate).isFile();
-      return h.file(isFile ? candidate : entryFile);
+      const candidate = path.resolve(frontendDirectoryReal, requestedPath);
+      const exists = fs.existsSync(candidate);
+      const candidateReal = exists ? fs.realpathSync(candidate) : null;
+      const relative = candidateReal ? path.relative(frontendDirectoryReal, candidateReal) : '..';
+      const isInsideFrontend = candidateReal && (relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative)));
+      const isFile = Boolean(isInsideFrontend) && fs.statSync(candidateReal).isFile();
+      return h.file(isFile ? candidateReal : entryFile);
     }
   });
 }
