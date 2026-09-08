@@ -85,9 +85,9 @@ async function submit() {
     await auth.init();
     const destination = route.query.redirect || (auth.isAccounting ? '/contabilidad' : '/carga');
     await router.replace(destination);
-  } catch (err) {
-    error.value = err.message || 'No fue posible iniciar sesión.';
-  } finally {
+  } catch (_err) {
+    error.value = 'Usuario o contraseña incorrectos.';
+  }
     loading.value = false;
   }
 }
