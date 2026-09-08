@@ -57,7 +57,7 @@ async function createServer() {
     port: config.port,
     routes: {
       cors: { origin: [config.corsOrigin], credentials: true, additionalHeaders: ['Authorization', 'X-Dev-User'] },
-      payload: { maxBytes: 8 * 1024 * 1024 }
+      payload: { maxBytes: 16 * 1024 * 1024 }
     }
   });
   server.route({
