@@ -1,91 +1,47 @@
-# 09 · Stack tecnológico
+# 09 · Stack tecnológico implementado
 
-> Enumeración de tecnologías exigida por el formato de sustentación, con la justificación de cada elección.
+> Versiones y herramientas verificables en `package.json`, configuraciones y flujos de integración continua del repositorio.
 
----
+## Aplicación
 
-## Frontend
+| Área           | Tecnología                                   | Uso                                                    |
+| -------------- | -------------------------------------------- | ------------------------------------------------------ |
+| Frontend       | Vue 3 + Vite                                 | SPA, componentes, compilación y servidor de desarrollo |
+| Estado y rutas | Pinia + Vue Router                           | Sesión, flujos por módulo y navegación protegida       |
+| Visualización  | Chart.js                                     | Indicadores y reportes del módulo de viáticos          |
+| Backend        | Node.js 22.13+ + Hapi                        | API REST modular y validación de solicitudes           |
+| Validación     | Joi                                          | Contratos de entrada y mensajes controlados            |
+| Autenticación  | Firebase Admin / Firebase Web                | Identidad, tokens y sesión; modo demo solo local       |
+| Persistencia   | MongoDB + Mongoose                           | Cotizaciones, solicitudes, soportes y estados          |
+| Documentos     | Handlebars + Puppeteer                       | Cotizaciones en PDF                                    |
+| OCR            | Proveedor configurable con modo demostración | Extracción asistida y corrección humana                |
 
-| Tecnología | Uso | Por qué |
-|---|---|---|
-| **React** | Interfaz web | Componentes reutilizables entre los tres módulos. Un mismo componente de tabla sirve para cotizaciones, candidatos y viáticos. |
-| **HTML5 / CSS3** | Estructura y estilos | Base estándar, responsive nativo. |
-| **Android / iOS** | App móvil | El registro de viáticos ocurre en obra, sin computador. Requiere cámara nativa para los soportes. |
+## Calidad y entrega
 
-## Backend
+| Herramienta                       | Propósito                                                      |
+| --------------------------------- | -------------------------------------------------------------- |
+| Vitest                            | Pruebas unitarias del frontend                                 |
+| Node test runner + inyección Hapi | Pruebas de rutas, roles y reglas del backend                   |
+| ESLint                            | Errores estáticos y reglas recomendadas de JavaScript/Vue      |
+| Prettier                          | Formato determinista                                           |
+| GitHub Actions                    | Formato, análisis, pruebas, compilación y auditoría en cada PR |
+| CodeQL                            | Análisis de seguridad semanal y por cambio                     |
+| Dependabot + npm audit            | Alertas y control de dependencias vulnerables                  |
 
-| Tecnología | Uso | Por qué |
-|---|---|---|
-| **Node.js / Python** | Lógica de negocio de los tres microservicios | Ecosistema maduro, buena disponibilidad de talento en Medellín. |
-| **API REST** | Comunicación cliente ↔ servidor | Estándar simple, bien documentado, fácil de consumir desde web y móvil. |
-| **Webhooks** | Integración con facturación electrónica y nómina | Permite que sistemas externos notifiquen eventos sin polling. |
-| **Prisma / SQLAlchemy** | ORM, lógica transaccional | Evita SQL manual, previene inyección, maneja migraciones de esquema. |
+## Entornos
 
-## Seguridad
+- **Desarrollo/pruebas:** repositorio en memoria, usuarios demo y OCR simulado; no requiere servicios externos.
+- **Integración/producción:** MongoDB, Firebase real, HTTPS y secretos inyectados desde el entorno.
+- **Objetivo de despliegue:** contenedor o servicio Node administrado. La elección de proveedor cloud se toma después de validar costos y requisitos de GALCO.
 
-| Tecnología | Uso |
-|---|---|
-| **OAuth 2.0** | Protocolo de autorización |
-| **JWT** | Token de sesión con rol embebido |
-| **HTTPS / TLS** | Cifrado en tránsito |
-| **Control de roles por módulo** | Comercial, RRHH, contabilidad, aprobador, empleado |
+## Por qué cambió respecto a Sprint 0
 
-## Persistencia
+Sprint 0 proponía React, aplicaciones móviles nativas, microservicios y PostgreSQL. El MVP existente ya utilizaba Vue/Vite, Hapi, MongoDB y Firebase. Se mantuvo esa base para reducir retrabajo, conservar las funcionalidades desarrolladas y entregar un incremento demostrable. La interfaz responsive cubre móvil desde el navegador; una app nativa se evaluará únicamente si aparecen necesidades reales de trabajo sin conexión o acceso avanzado al dispositivo.
 
-| Tecnología | Uso | Por qué |
-|---|---|---|
-| **PostgreSQL** | Base de datos relacional | Los datos son fuertemente relacionales (cotización → cliente → productos → precios). Requiere integridad referencial y transacciones. Open source, sin costo de licencia. |
-| **Bucket de archivos** | Hojas de vida en PDF y fotos de soportes | Los archivos binarios no van en la base de datos: encarecen backups y degradan el rendimiento. |
+## Requisitos locales
 
-## Infraestructura
-
-| Tecnología | Uso | Por qué |
-|---|---|---|
-| **Azure o Supabase** | Plataforma cloud | Se alinea con lo que ya se maneja en IDT. Supabase da PostgreSQL, autenticación y storage en un solo servicio, lo que reduce la complejidad de operación. |
-| **Instancia Linux o Azure App Service** | Servidores | Servicio administrado para no dedicar tiempo a administración de sistemas. |
-| **HTTPS sobre banda ancha corporativa** | Conectividad | Estándar de la red interna de GALCO. |
-
----
-
-## Diagrama del stack
-
-```mermaid
-flowchart TB
-    subgraph F["FRONTEND"]
-        F1[React · HTML5 · CSS3]
-        F2[Android · iOS]
-    end
-    subgraph B["BACKEND"]
-        B1[Node.js / Python]
-        B2[API REST · Webhooks]
-        B3[OAuth 2.0 · JWT]
-        B4[Prisma / SQLAlchemy]
-    end
-    subgraph P["PERSISTENCIA"]
-        P1[(PostgreSQL)]
-        P2[Bucket de archivos]
-    end
-    subgraph I["INFRAESTRUCTURA"]
-        I1[Azure / Supabase]
-        I2[Linux · App Service]
-        I3[HTTPS]
-    end
-    F --> B --> P
-    B --> I
-```
-
----
-
-## Decisiones de arquitectura y sus alternativas descartadas
-
-| Decisión | Alternativa descartada | Razón |
-|---|---|---|
-| PostgreSQL | MongoDB | Los datos son relacionales por naturaleza. Una cotización sin integridad referencial con su catálogo de precios es exactamente el problema que se quiere resolver. |
-| Microservicios | Monolito | Los tres módulos pertenecen a áreas distintas y salen en releases distintos. La independencia de despliegue y de falla es más valiosa que la simplicidad inicial. |
-| React | Angular / Vue | Mayor disponibilidad de talento local y ecosistema de componentes. |
-| App móvil nativa | Solo web responsive | El acceso a cámara para soportes de viáticos y el uso en obra con conectividad intermitente justifican la app. |
-| Bucket de archivos | BLOB en base de datos | Costo de backup y rendimiento. |
-
----
+- Node.js 22.13 o superior.
+- npm 10 o superior.
+- MongoDB y Firebase son opcionales para la demostración local y obligatorios para persistencia/autenticación productiva.
 
 **Anterior:** [[08 Arquitectura]] · **Siguiente:** [[10 Competencia y ventaja competitiva]]

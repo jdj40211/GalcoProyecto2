@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+tmp
+frontend/public
+docs/wiki/01-Contexto-de-la-empresa.md
+docs/wiki/02-Problematica-y-cifras.md
+docs/wiki/03-Empatizar.md
+docs/wiki/04-Divergir.md
+docs/wiki/05-Decidir.md
+docs/wiki/06-Prototipar.md
+docs/wiki/07-Funcionalidades.md
+docs/wiki/10-Competencia-y-ventaja-competitiva.md
+docs/wiki/12-Manual-de-marca-y-diseno.md
+docs/wiki/14-Mockups.md

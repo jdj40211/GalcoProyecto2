@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Cotización {{consecutivo}}</title>
+<style>
+  @page { size: A4; margin: 18mm 14mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Helvetica", "Arial", sans-serif;
+    color: #1f2937;
+    font-size: 11px;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid #1e40af;
+    padding-bottom: 10px;
+    margin-bottom: 16px;
+  }
+  .brand { font-size: 22px; font-weight: 700; color: #1e40af; letter-spacing: .5px; }
+  .brand small { display:block; font-size: 10px; font-weight:400; color:#6b7280; margin-top:2px; }
+  .doc-meta { text-align: right; font-size: 11px; }
+  .doc-meta .badge {
+    display:inline-block; background:#1e40af; color:#fff; padding:4px 10px;
+    border-radius: 4px; font-weight: 600; letter-spacing: .5px;
+  }
+  .doc-meta .num { font-size: 14px; font-weight: 700; margin-top: 4px; }
+  h2 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: #1e40af;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 4px;
+    margin: 18px 0 8px;
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  table th, table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    vertical-align: top;
+  }
+  table th {
+    background: #f3f4f6;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: .4px;
+  }
+  .num  { text-align: right; font-variant-numeric: tabular-nums; }
+  .totales { background: #f3f4f6; }
+  .totales td { font-weight: 600; }
+  .total-final td {
+    background: #1e40af;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .chips span {
+    display:inline-block; background:#eef2ff; color:#1e40af;
+    padding:3px 10px; border-radius: 999px; margin-right:6px; font-size:10px;
+    font-weight:600;
+  }
+  footer {
+    margin-top: 30px;
+    font-size: 9px;
+    color: #6b7280;
+    text-align: center;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 8px;
+  }
+  .note { font-size: 10px; color: #6b7280; margin-top: 10px; line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="brand">GALCO
+      <small>Cotizador de Postes Metálicos</small>
+    </div>
+  </div>
+  <div class="doc-meta">
+    <div class="badge">COTIZACIÓN</div>
+    <div class="num">{{consecutivo}}</div>
+    <div style="font-size:10px;color:#6b7280;margin-top:2px;">
+      Fecha: {{fecha}}<br>
+      Versión: {{version}}
+    </div>
+  </div>
+</header>
+
+<h2>Datos del cliente</h2>
+<table>
+  <tr>
+    <th style="width:120px">Cliente</th><td>{{metadata.cliente}}</td>
+    <th style="width:120px">Vendedor</th><td>{{metadata.vendedor}}</td>
+  </tr>
+  {{#if metadata.vigenciaHasta}}
+  <tr>
+    <th>Vigencia hasta</th><td colspan="3">{{metadata.vigenciaHasta}}</td>
+  </tr>
+  {{/if}}
+  {{#if metadata.observaciones}}
+  <tr>
+    <th>Observaciones</th><td colspan="3">{{metadata.observaciones}}</td>
+  </tr>
+  {{/if}}
+</table>
+
+<h2>Configuración del poste</h2>
+<div class="chips">
+  <span>Tipo: {{configuracion.tipoPoste}}</span>
+  <span>Altura: {{configuracion.altura}} m</span>
+  <span>Brazo/Ancho: {{configuracion.brazo}} m</span>
+  <span>Pintura: {{#if configuracion.pintura}}Sí{{else}}No{{/if}}</span>
+  <span>Cantidad: {{configuracion.cantidad}}</span>
+</div>
+
+<h2>Características técnicas (por unidad)</h2>
+<div class="grid2">
+  <table>
+    <tr><th>Peso tubo vertical 6"</th><td class="num">{{f_decimal caracteristicas.pesoVertical 2}} kg</td></tr>
+    <tr><th>Peso tubos horizontales</th><td class="num">{{f_decimal caracteristicas.pesoHorizontales 2}} kg</td></tr>
+    <tr><th>Peso platinas</th><td class="num">{{f_decimal caracteristicas.pesoPlatinas 2}} kg</td></tr>
+    <tr class="totales"><td>Peso total unitario</td><td class="num">{{f_decimal caracteristicas.pesoTotalUnitario 2}} kg</td></tr>
+  </table>
+
+  <table>
+    <tr><th>Área tubo vertical</th><td class="num">{{f_decimal caracteristicas.areaVertical 3}} m²</td></tr>
+    <tr><th>Área tubos horizontales</th><td class="num">{{f_decimal caracteristicas.areaHorizontales 3}} m²</td></tr>
+    <tr><th>Área platinas</th><td class="num">{{f_decimal caracteristicas.areaPlatinas 3}} m²</td></tr>
+    <tr class="totales"><td>Área total unitaria</td><td class="num">{{f_decimal caracteristicas.areaTotalUnitaria 3}} m²</td></tr>
+  </table>
+</div>
+
+<h2>Desglose de costos (por unidad)</h2>
+<table>
+  <tr><th>Concepto</th><th class="num">Valor (COP)</th></tr>
+  <tr><td>Costo tubos</td><td class="num">{{f_money costos.tubos}}</td></tr>
+  <tr><td>Costo platinas</td><td class="num">{{f_money costos.platinas}}</td></tr>
+  <tr><td>Costo galvanizado</td><td class="num">{{f_money costos.galvanizado}}</td></tr>
+  <tr><td>Costo pintura</td><td class="num">{{f_money costos.pintura}}</td></tr>
+  <tr class="totales"><td>Costo unitario</td><td class="num">{{f_money costos.costoUnitario}}</td></tr>
+  <tr class="totales"><td>Costo total ({{configuracion.cantidad}} und.)</td><td class="num">{{f_money costos.costoTotal}}</td></tr>
+</table>
+
+<h2>Precios finales con AIU</h2>
+<table>
+  <tr>
+    <th>Concepto</th>
+    <th class="num">Precio unitario</th>
+    <th class="num">Cantidad</th>
+    <th class="num">Precio final</th>
+  </tr>
+  <tr>
+    <td>Precio galvanizado</td>
+    <td class="num">{{f_money precios.precioUnitarioGalvanizado}}</td>
+    <td class="num">{{configuracion.cantidad}}</td>
+    <td class="num">{{f_money precios.precioFinalGalvanizado}}</td>
+  </tr>
+  <tr>
+    <td>Precio galvanizado + pintura</td>
+    <td class="num">{{f_money precios.precioUnitarioGalvanizadoPintura}}</td>
+    <td class="num">{{configuracion.cantidad}}</td>
+    <td class="num">{{f_money precios.precioFinalGalvanizadoPintura}}</td>
+  </tr>
+  <tr class="total-final">
+    <td colspan="3">TOTAL A FACTURAR{{#if configuracion.pintura}} (Galvanizado + Pintura){{else}} (Solo galvanizado){{/if}}</td>
+    <td class="num">{{f_money precios.precioFinal}}</td>
+  </tr>
+</table>
+
+<p class="note">
+  Precios calculados con AIU de {{parametrosAplicados.aiuMateriaPrimaYMOInterna}}%
+  sobre materia prima y MO interna, y {{parametrosAplicados.aiuManoObraExterna}}% sobre pintura.
+  Costo de galvanizado aplicado: {{f_money parametrosAplicados.costoGalvanizadoPorKg}} / kg.
+  Costo de pintura: {{f_money parametrosAplicados.costoPorM2Pintura}} / m².
+</p>
+
+<footer>
+  Documento generado automáticamente por Cotizador GALCO{{#if metadata.vigenciaHasta}} — Precios vigentes hasta {{metadata.vigenciaHasta}}{{/if}}.
+</footer>
+
+</body>
+</html>
