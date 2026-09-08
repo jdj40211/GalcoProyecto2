@@ -1,64 +1,61 @@
-# Proyecto GALCO — Plataforma interna todo en uno
+# Proyecto GALCO — Cotizador y Gestión de Viáticos
 
-> Proyecto Integrador 2 · Sprint 0 · Documentación del ejercicio de Design Thinking, arquitectura, funcionalidades y prototipos.
+> Proyecto Integrador 2 · Sprint 1 · MVP integrado ejecutable.
 
----
+## Producto actual
 
-## Qué es este proyecto
+La aplicación une Cotizador de postes y Gestión de viáticos en una SPA Vue 3 con API Node/Hapi. Comparte autenticación, roles, navegación e identidad GALCO. La arquitectura y el stack de esta wiki describen el código real.
 
-Diseño de un **sistema interno todo en uno** para **GALCO S.A.S.** (Itagüí, Antioquia) que reemplaza los procesos manuales actuales basados en Excel, correo y WhatsApp por tres módulos integrados en una sola plataforma:
+El módulo de Hojas de vida permanece como iniciativa del Product Backlog de Sprint 0; no se declara construido en este MVP hasta una decisión del Product Owner.
 
-| Módulo | Qué resuelve | Usuario principal |
-|---|---|---|
-| **Cotizador de productos** | Generar propuestas comerciales en minutos con catálogo y precios actualizados | Comercial |
-| **Gestor de hojas de vida** | Centralizar candidatos y personal para procesos de selección | RRHH / Admin |
-| **Gestor de viáticos** | Registrar, soportar y aprobar digitalmente gastos de viaje a obra o cliente | Empleado / Aprobador |
+## Índice
 
----
+### Contexto y Design Thinking
 
-## Índice de la wiki
-
-### Contexto y problema
-- **[[01 Contexto de la empresa]]** — quién es GALCO, qué produce, cómo opera hoy
-- **[[02 Problematica y cifras]]** — el dolor cuantificado, con fuentes citables
-
-### Design Thinking
-- **[[03 Empatizar]]** — mapa de empatía del usuario interno
-- **[[04 Divergir]]** — benchmark de plataformas todo en uno del mercado
-- **[[05 Decidir]]** — mapa de historias de usuario y plan de releases
-- **[[06 Prototipar]]** — bocetos, dashboard y pantallas
+- **[[01 Contexto de la empresa]]**
+- **[[02 Problematica y cifras]]**
+- **[[03 Empatizar]]**
+- **[[04 Divergir]]**
+- **[[05 Decidir]]**
+- **[[06 Prototipar]]**
 
 ### Solución
-- **[[07 Funcionalidades]]** — detalle funcional de los tres módulos
-- **[[08 Arquitectura]]** — arquitectura por capas y diagrama de componentes
-- **[[09 Stack tecnologico]]** — tecnologías elegidas y por qué
-- **[[10 Competencia y ventaja competitiva]]** — Odoo, Zoho One, Bitrix24 y dónde ganamos
 
-### Entrega
-- **[[12 Manual de marca y diseno]]** — colores oficiales, tipografía y reglas de UI
-- **[[14 Mockups]]** — las 28 pantallas de la aplicación en alta fidelidad
+- **[[07 Funcionalidades]]**
+- **[[08 Arquitectura]]** — arquitectura implementada
+- **[[09 Stack tecnologico]]** — tecnologías verificables
+- **[[10 Competencia y ventaja competitiva]]**
+- **[[12 Manual de marca y diseno]]**
+- **[[14 Mockups]]**
 
----
+### Entrega Sprint 1
 
-## Identidad visual del proyecto
+- **[[15 Sprint 1 Plan de negocio]]**
+- **[[16 Sprint 1 Backlog y trazabilidad]]**
+- **[[17 Sprint 1 Pruebas funcionales]]**
+- **[[18 Calidad del software]]**
+- **[[19 Ceremonias Sprint 1]]**
+- **[[20 Sustentacion Sprint 1]]**
+- **[[21 Sprint 1 Checklist]]**
 
-Todo el sistema usa la identidad de marca de GALCO, extraída del logo oficial:
+## Identidad visual
 
-| Color | Hex | Uso |
-|---|---|---|
-| Azul GALCO | `#0053A1` | Color primario: navegación, encabezados, acciones principales |
-| Verde GALCO | `#7DB928` | Acento: estados positivos, confirmaciones, aprobado |
-| Blanco | `#FFFFFF` | Fondo de contenido |
+| Token          | Color     | Uso                               |
+| -------------- | --------- | --------------------------------- |
+| Azul GALCO     | `#0053A1` | Navegación y acciones principales |
+| Verde GALCO    | `#7DB928` | Acentos y estados positivos       |
+| Gris principal | `#111827` | Texto                             |
+| Fondo          | `#F7F9FB` | Superficie general                |
 
-Eslogan de marca: **"Trabajo bien Hecho!"**
+La interfaz usa colores sólidos, tipografía Inter, estados con texto e ícono, foco visible y diseño responsive.
 
----
+## Estado
 
-## Estado del proyecto
-
-| Sprint | Estado | Entregable |
-|---|---|---|
-| Sprint 0 | En sustentación | Design Thinking, arquitectura, prototipos, este repositorio |
-| Sprint 1 | Pendiente | Release 1: crear (cotización, candidato, solicitud de viático) |
-| Sprint 2 | Pendiente | Release 2: gestionar (consultar, buscar, adjuntar, aprobar) |
-| Sprint 3 | Pendiente | Release 3: reportar (estados, reportes de personal y contables) |
+| Entregable                      | Estado               |
+| ------------------------------- | -------------------- |
+| MVP Cotizador + Viáticos        | Implementado         |
+| Pruebas automatizadas y E2E     | Aprobadas localmente |
+| Documentos de Sprint 1          | Preparados           |
+| Firma de aceptación manual      | Pendiente del equipo |
+| Evidencia real de ceremonias    | Pendiente del equipo |
+| Aprobación del Product Owner/PR | Pendiente            |

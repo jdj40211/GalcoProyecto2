@@ -1,0 +1,37 @@
+name: Reporte de error
+description: Registra un defecto encontrado durante una prueba funcional.
+title: '[BUG] '
+labels: ['bug']
+body:
+  - type: input
+    id: trace
+    attributes:
+      label: Historia y caso de prueba
+      description: Ejemplo HU-20 / CP-HU20-02
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducir
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Resultado esperado
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Resultado obtenido
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severidad
+      options: [Bloqueante, Alta, Media, Baja]
+    validations:
+      required: true

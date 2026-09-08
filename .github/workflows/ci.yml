@@ -1,0 +1,46 @@
+name: Calidad continua
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Formato, análisis, pruebas y compilación
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+            backend/package-lock.json
+      - name: Instalar herramientas raíz
+        run: npm ci
+      - name: Instalar frontend
+        run: npm --prefix frontend ci
+      - name: Instalar backend
+        run: npm --prefix backend ci
+      - name: Verificar formato
+        run: npm run format:check
+      - name: Ejecutar análisis estático
+        run: npm run lint
+      - name: Ejecutar pruebas
+        run: npm run test
+      - name: Compilar MVP
+        run: npm run build
+      - name: Probar flujos completos en navegador
+        run: npm run test:e2e
+      - name: Auditar dependencias de producción
+        run: npm run audit:prod

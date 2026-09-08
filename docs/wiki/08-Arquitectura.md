@@ -1,143 +1,87 @@
-# 08 · Arquitectura de la solución
+# 08 · Arquitectura implementada
 
----
+> Esta página describe el código ejecutable del MVP. Sustituye la arquitectura aspiracional de Sprint 0 para evitar diferencias entre documentación, demostración y repositorio.
 
-## Diagrama de componentes
-
-```mermaid
-flowchart TB
-    subgraph CL["CAPA CLIENTE"]
-        W[Cliente web<br/>React]
-        M[Cliente móvil<br/>Android · iOS]
-    end
-
-    GW[API Gateway<br/>Autenticación · Enrutamiento · Rate limiting]
-
-    subgraph MS["CAPA DE SERVICIOS"]
-        S1[Cotizador<br/>Precios y clientes]
-        S2[Hojas de vida<br/>Candidatos y personal]
-        S3[Viáticos<br/>Registro y aprobación]
-    end
-
-    subgraph PE["CAPA DE PERSISTENCIA E INTEGRACIÓN"]
-        DB[(Base de datos<br/>PostgreSQL)]
-        FS[Almacenamiento<br/>Archivos y soportes]
-        EX[Integraciones<br/>DIAN y notificaciones]
-    end
-
-    W --> GW
-    M --> GW
-    GW --> S1
-    GW --> S2
-    GW --> S3
-    S1 --> DB
-    S2 --> DB
-    S3 --> DB
-    S1 --> EX
-    S2 --> FS
-    S3 --> FS
-    S3 --> EX
-```
-
----
-
-## Arquitectura por capas
-
-### Capa Cliente
-
-| Componente | Rol |
-|---|---|
-| **Cliente web (React)** | Interfaz principal para comercial, RRHH, contabilidad y aprobadores desde el computador. |
-| **Cliente móvil (Android / iOS)** | Registro de viáticos en obra y consulta de cotizaciones en campo. Acceso a cámara para soportes. |
-
-### API Gateway
-
-Punto único de entrada. Responsabilidades:
-
-- **Autenticación y autorización** — valida el token JWT y el rol antes de enrutar.
-- **Enrutamiento** — dirige la petición al microservicio correspondiente.
-- **Control de tráfico** — límites de tasa y protección básica.
-- **Punto único de auditoría** — toda petición queda registrada aquí.
-
-**Por qué un gateway:** el cliente móvil y el web hablan con una sola URL. Si mañana se agrega un cuarto módulo, el cliente no cambia.
-
-### Capa de servicios (microservicios)
-
-| Servicio | Responsabilidad | Datos que posee |
-|---|---|---|
-| **Cotizador** | Catálogo, precios, clientes, cotizaciones y sus estados | Productos, precios vigentes, clientes, cotizaciones |
-| **Hojas de vida** | Candidatos, personal, procesos de selección | Candidatos, empleados, formación, experiencia |
-| **Viáticos** | Solicitudes, soportes, flujo de aprobación, liquidación | Solicitudes, adjuntos, aprobaciones, centros de costo |
-
-**Por qué microservicios y no un monolito:** cada módulo corresponde a un release independiente y a un área distinta de la empresa. Si el módulo de viáticos falla un lunes de cierre contable, el comercial sigue cotizando sin enterarse. Además permite desplegar el Release 1 de un módulo mientras otro sigue en desarrollo.
-
-### Capa de persistencia e integración
-
-| Componente | Rol |
-|---|---|
-| **PostgreSQL** | Base de datos relacional. Toda la información transaccional: cotizaciones, candidatos, solicitudes. |
-| **Almacenamiento de archivos (bucket)** | Hojas de vida en PDF y fotos de soportes de viáticos. Fuera de la base de datos por peso y por costo. |
-| **Integraciones externas** | Facturación electrónica DIAN, notificaciones por correo y WhatsApp. |
-
----
-
-## Tabla formal de arquitectura por capas
-
-| Capa | Tecnología | Recursos tecnológicos |
-|---|---|---|
-| Cliente | Web | HTML5, CSS3, React |
-| Cliente | Móvil | Android, iOS (registrar viáticos y consultar cotizaciones en campo) |
-| Media | Lógica de negocio | Node.js / Python |
-| Media | Lógica transaccional | SQL estándar / ORM (Prisma, SQLAlchemy) |
-| Media | Seguridad | OAuth 2.0, JWT, control de roles por módulo (comercial, RRHH, contabilidad) |
-| Media | Lógica de integración | APIs REST, Webhooks (para conectar con facturación electrónica o nómina) |
-| Persistencia | SQL | PostgreSQL |
-| Persistencia | Almacenamiento de archivos | Bucket de archivos para hojas de vida y soportes de viáticos |
-| Infraestructura | Internet | Banda ancha corporativa, HTTPS |
-| Infraestructura | Plataforma cloud | Azure o Supabase (según lo que ya manejen en IDT) |
-| Infraestructura | Servidores cloud | Instancia virtual Linux o servicio administrado (Azure App Service) |
-
----
-
-## Flujo de ejemplo: crear y enviar una cotización
+## Vista general
 
 ```mermaid
-sequenceDiagram
-    participant C as Comercial (web)
-    participant G as API Gateway
-    participant S as Servicio Cotizador
-    participant D as PostgreSQL
-    participant E as Servicio de correo
-
-    C->>G: POST /cotizaciones (token JWT)
-    G->>G: Valida token y rol comercial
-    G->>S: Enruta la petición
-    S->>D: Consulta precios vigentes del catálogo
-    D-->>S: Precios y especificaciones
-    S->>S: Calcula subtotal, IVA y total
-    S->>D: Guarda cotización con consecutivo
-    S-->>G: Cotización creada
-    G-->>C: Número de cotización y PDF
-
-    C->>G: POST /cotizaciones/{id}/enviar
-    G->>S: Enruta
-    S->>E: Envía PDF al correo del cliente
-    S->>D: Registra estado = Enviada
+flowchart LR
+    U[Usuario interno] --> SPA[SPA Vue 3]
+    SPA -->|REST /api| API[API Node.js + Hapi]
+    API --> AUTH[Firebase Authentication]
+    API --> COT[Módulo Cotizador]
+    API --> VIA[Módulo Viáticos]
+    COT --> REPO[Capa de repositorios]
+    VIA --> REPO
+    REPO --> MEM[(Memoria · desarrollo/pruebas)]
+    REPO --> MDB[(MongoDB · entorno persistente)]
+    COT --> PDF[PDF con Handlebars + Puppeteer]
+    VIA --> OCR[OCR configurable]
 ```
 
----
+## Decisión para el MVP
+
+Se implementó un **monolito modular**: una sola aplicación web y una sola API, separadas internamente por dominio. Para un equipo académico y un primer MVP ofrece despliegue, depuración y pruebas simples, sin perder límites claros entre Cotizador y Viáticos. La extracción a servicios independientes queda disponible si el volumen o la operación lo justifican con evidencia.
+
+## Capas y responsabilidades
+
+| Capa         | Implementación                | Responsabilidad                                                           |
+| ------------ | ----------------------------- | ------------------------------------------------------------------------- |
+| Presentación | Vue 3, Vue Router, Pinia, CSS | Navegación, formularios, validación inmediata y estados visuales          |
+| API          | Hapi                          | Rutas REST, validación de entrada, autenticación y autorización           |
+| Dominio      | Servicios por módulo          | Cálculos de postes, consecutivos, solicitudes, OCR y aprobaciones         |
+| Datos        | Repositorios intercambiables  | Persistencia en memoria para pruebas o MongoDB para ejecución persistente |
+| Salidas      | Puppeteer, TXT                | Cotización PDF y exportación contable                                     |
+
+## Módulos entregados
+
+### Cotizador de postes
+
+- Consulta parámetros y catálogos de configuraciones.
+- Calcula materiales, áreas, pesos, costos, AIU y precio final.
+- Guarda una instantánea de configuración y parámetros para reproducibilidad.
+- Genera consecutivo anual y cotización PDF con vigencia.
+- Permite consultar el historial.
+
+### Gestión de viáticos
+
+- Crea solicitudes de viaje con gastos estimados y total automático.
+- Maneja estados borrador, enviada, aprobada y rechazada según el rol.
+- Recibe soportes JPG, PNG o PDF de máximo 10 MB.
+- Extrae y permite corregir datos OCR conservando trazabilidad.
+- Ofrece historial, revisión contable, indicadores y exportación TXT.
 
 ## Seguridad
 
-| Control | Implementación |
-|---|---|
-| Autenticación | OAuth 2.0 + JWT con expiración |
-| Autorización | Control de roles por módulo, validado en el gateway y en cada servicio |
-| Transporte | HTTPS obligatorio en todas las capas |
-| Archivos | Bucket privado con URLs firmadas de vigencia corta |
-| Auditoría | Registro de usuario, acción, fecha y hora en toda operación de escritura |
-| Datos personales | Las hojas de vida contienen datos personales sujetos a la Ley 1581 de 2012 (habeas data). Acceso restringido al rol RRHH. |
+- Firebase verifica identidad cuando se configura un proyecto real.
+- El modo demostración está aislado por configuración y no debe habilitarse en producción.
+- La API aplica autorización por rol y limita los registros al usuario propietario.
+- Joi valida cada entrada antes de ejecutar lógica de negocio.
+- Los secretos se cargan por variables de entorno y los archivos `.env` están excluidos de Git.
+- Dependabot, auditoría de dependencias y CodeQL cubren vulnerabilidades conocidas y análisis de código.
 
----
+## Persistencia y deuda conocida
+
+MongoDB es la opción persistente implementada. El repositorio en memoria permite demostración y pruebas reproducibles. Antes de producción se debe configurar MongoDB, usar Firebase real y mover los soportes desde documentos codificados a un almacenamiento privado de objetos con URLs firmadas.
+
+## Flujo de una solicitud de viaje
+
+```mermaid
+sequenceDiagram
+    participant E as Empleado/Comercial
+    participant V as SPA Vue
+    participant A as API Hapi
+    participant R as Repositorio
+    participant C as Contabilidad
+    E->>V: Completa solicitud y gastos
+    V->>A: POST /api/solicitudes-viaticos
+    A->>A: Valida usuario, fechas e importes
+    A->>R: Guarda borrador y consecutivo
+    E->>V: Envía la solicitud
+    V->>A: POST /{id}/enviar
+    A->>R: Estado = enviada
+    C->>A: POST /{id}/aprobar o /rechazar
+    A->>R: Registra decisión, usuario y fecha
+```
 
 **Anterior:** [[07 Funcionalidades]] · **Siguiente:** [[09 Stack tecnologico]]

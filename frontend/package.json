@@ -1,0 +1,26 @@
+{
+  "name": "galco-suite-frontend",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "engines": { "node": ">=22.13.0" },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "axios": "1.20.0",
+    "chart.js": "4.4.1",
+    "firebase": "12.18.0",
+    "pinia": "2.3.1",
+    "vue": "3.5.32",
+    "vue-router": "4.6.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "6.0.8",
+    "vite": "8.2.2",
+    "vitest": "4.1.11"
+  }
+}
