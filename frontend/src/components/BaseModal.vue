@@ -18,7 +18,7 @@
 defineProps({
   open: Boolean,
   title: { type: String, required: true },
-  titleId: { type: String, default: 'modal-title' }
+  titleId: { type: String, default: () => `modal-title-${Math.random().toString(36).slice(2)}` }
 });
 defineEmits(['close']);
 </script>
