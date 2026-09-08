@@ -96,8 +96,12 @@ function validate(file) {
 async function selectFile(file) {
   const error = validate(file);
   if (error) return toast.show(error, 'danger');
-  workflow.setFile(file, await fileToDataUrl(file));
-  toast.show('Archivo cargado correctamente.', 'success');
+  try {
+    workflow.setFile(file, await fileToDataUrl(file));
+    toast.show('Archivo cargado correctamente.', 'success');
+  } catch (err) {
+    toast.show(err?.message || 'No fue posible leer el archivo.', 'danger');
+  }
 }
 async function process() {
   processing.value = true;
