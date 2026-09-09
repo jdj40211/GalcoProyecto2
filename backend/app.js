@@ -29,7 +29,8 @@ async function registerFrontend(server) {
       }
 
       const hasOnlySafeChars = /^[A-Za-z0-9._/-]*$/.test(requestedPath);
-      const hasInvalidSegments = requestedPath.includes('\0') || requestedPath.includes('\\') || path.isAbsolute(requestedPath);
+      const hasInvalidSegments =
+        requestedPath.includes('\0') || requestedPath.includes('\\') || path.isAbsolute(requestedPath);
       if (!hasOnlySafeChars || hasInvalidSegments) {
         return h.file(entryFile);
       }
@@ -42,7 +43,8 @@ async function registerFrontend(server) {
 
       const candidate = path.resolve(frontendDirectoryReal, normalizedRequestedPath);
       const relativeToRoot = path.relative(frontendDirectoryReal, candidate);
-      const isInsideFrontend = relativeToRoot === '' || (!relativeToRoot.startsWith('..') && !path.isAbsolute(relativeToRoot));
+      const isInsideFrontend =
+        relativeToRoot === '' || (!relativeToRoot.startsWith('..') && !path.isAbsolute(relativeToRoot));
       if (!isInsideFrontend) {
         return h.file(entryFile);
       }
@@ -55,7 +57,8 @@ async function registerFrontend(server) {
       }
 
       const realRelativeToRoot = path.relative(frontendDirectoryReal, candidateReal);
-      const isInsideFrontendReal = realRelativeToRoot === '' || (!realRelativeToRoot.startsWith('..') && !path.isAbsolute(realRelativeToRoot));
+      const isInsideFrontendReal =
+        realRelativeToRoot === '' || (!realRelativeToRoot.startsWith('..') && !path.isAbsolute(realRelativeToRoot));
       const isFile = isInsideFrontendReal && fs.statSync(candidateReal).isFile();
       return h.file(isFile ? candidateReal : entryFile);
     }

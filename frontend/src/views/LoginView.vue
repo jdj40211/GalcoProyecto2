@@ -87,7 +87,7 @@ async function submit() {
     await router.replace(destination);
   } catch (_err) {
     error.value = 'Usuario o contraseña incorrectos.';
-  }
+  } finally {
     loading.value = false;
   }
 }
