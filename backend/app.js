@@ -88,6 +88,7 @@ async function createServer() {
   });
   await server.register(require('./plugins/db.plugin'));
   await server.register(require('./plugins/auth.plugin'));
+  server.route(require('./modules/usuarios.routes'));
   await server.register(require('./modules/viaticos/viaticos.plugin'), { routes: { prefix: '/api' } });
   await server.register(require('./modules/cotizador/cotizador.plugin'), { routes: { prefix: '/api' } });
   await registerFrontend(server);

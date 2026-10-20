@@ -8,6 +8,25 @@ const validate = (schema, target = 'payload') => ({
 
 module.exports = [
   {
+    method: 'POST',
+    path: '/solicitudes-viaticos/{id}/legalizar',
+    options: {
+      validate: { params: schemas.id, payload: schemas.legalize },
+      handler: controller.legalize
+    }
+  },
+  {
+    method: 'GET',
+    path: '/notificaciones',
+    handler: (request) => require('../services/notificaciones.service').list(request.auth.credentials.usuario)
+  },
+  {
+    method: 'PATCH',
+    path: '/notificaciones/{id}/leer',
+    handler: (request) =>
+      require('../services/notificaciones.service').read(request.params.id, request.auth.credentials.usuario)
+  },
+  {
     method: 'GET',
     path: '/solicitudes-viaticos',
     options: { ...validate(schemas.query, 'query'), handler: controller.list }

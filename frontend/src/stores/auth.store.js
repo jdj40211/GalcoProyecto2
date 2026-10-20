@@ -1,10 +1,13 @@
 import { defineStore } from 'pinia';
+import axios from 'axios';
 import { auth as firebaseAuth, isFirebaseConfigured } from '@/services/firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { clearActivity, idleLimitMs, isIdleExpired, readActivity, recordActivity } from '@/services/session';
 
 const SESSION_KEY = 'galco.viaticos.session';
-const ROLES = ['comercial', 'contabilidad'];
+const demo = !isFirebaseConfigured || import.meta.env.VITE_AUTH_BYPASS === 'true';
+const sessionApi = axios.create({ baseURL: import.meta.env.VITE_API_BASE || '/api' });
+const ROLES = ['admin', 'comercial', 'contabilidad'];
 const devMode = () => !isFirebaseConfigured || import.meta.env.VITE_AUTH_BYPASS === 'true';
 
 const loginErrors = {
@@ -25,7 +28,9 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: (state) => Boolean(state.user),
     isAccounting: (state) => state.user?.rol === 'contabilidad',
-    isCommercial: (state) => state.user?.rol === 'comercial'
+    isCommercial: (state) => state.user?.rol === 'comercial',
+    home: (state) =>
+      state.user?.rol === 'admin' ? '/usuarios' : state.user?.rol === 'contabilidad' ? '/contabilidad' : '/carga'
   },
   actions: {
     async setFirebaseUser(fbUser) {
@@ -59,7 +64,9 @@ export const useAuthStore = defineStore('auth', {
         } catch {
           this.user = null;
         }
-        this.token = this.user ? 'dev-token' : null;
+        this.token = sessionStorage.getItem(`${SESSION_KEY}.token`);
+        this.expiresAt = Number(sessionStorage.getItem(`${SESSION_KEY}.expires`));
+        if (!this.token || this.expiresAt <= Date.now()) this.clear();
         await this.expireIfIdle();
         this.ready = true;
         return;
@@ -78,18 +85,20 @@ export const useAuthStore = defineStore('auth', {
       );
     },
     async login(usuario, password) {
-      if (devMode()) {
-        const users = [
-          { nombre: 'Juan Díaz', usuario: 'jdiaz', password: '1234', rol: 'comercial' },
-          { nombre: 'Laura Gómez', usuario: 'lgomez', password: '1234', rol: 'comercial' },
-          { nombre: 'Carlos Rueda', usuario: 'crueda', password: '1234', rol: 'comercial' },
-          { nombre: 'Andrés Castro', usuario: 'acastro', password: 'conta2024', rol: 'contabilidad' }
-        ];
-        const found = users.find((item) => item.usuario === usuario && item.password === password);
-        if (!found) throw new Error('Usuario o contraseña incorrectos.');
-        this.user = { nombre: found.nombre, usuario: found.usuario, rol: found.rol, uid: `dev-${found.usuario}` };
-        this.token = 'dev-token';
+      if (!isFirebaseConfigured || import.meta.env.VITE_AUTH_BYPASS === 'true') {
+        let data;
+        try {
+          ({ data } = await sessionApi.post('/sesion', { usuario, password }));
+        } catch (error) {
+          throw new Error(error.response?.data?.message || 'No fue posible iniciar sesión.', { cause: error });
+        }
+        this.user = data.user;
+        this.token = data.token;
+        this.expiresAt = data.expiresAt;
         sessionStorage.setItem(SESSION_KEY, JSON.stringify(this.user));
+        sessionStorage.setItem(`${SESSION_KEY}.token`, this.token);
+        sessionStorage.setItem(`${SESSION_KEY}.expires`, String(this.expiresAt));
+        this.ready = true;
         this.startSession();
         return;
       }
@@ -115,23 +124,34 @@ export const useAuthStore = defineStore('auth', {
       if (this.user && isIdleExpired(readActivity(), idleLimitMs())) await this.logout('inactividad');
     },
     async getToken() {
-      if (devMode()) return this.token;
+      if (demo) {
+        if (this.expiresAt <= Date.now()) this.clear();
+        return this.token;
+      }
       if (!firebaseAuth?.currentUser) return null;
       return firebaseAuth.currentUser.getIdToken(Date.now() > this.expiresAt - 60000);
     },
     async logout(reason = '') {
-      if (isFirebaseConfigured && firebaseAuth) {
-        await signOut(firebaseAuth);
+      try {
+        if (demo && this.token) {
+          // Revoca la sesión en el servidor; si ya venció o no hay red, la sesión local se cierra igual.
+          await sessionApi.delete('/sesion', { headers: { Authorization: `Bearer ${this.token}` } }).catch(() => {});
+        } else if (isFirebaseConfigured && firebaseAuth) {
+          await signOut(firebaseAuth);
+        }
+      } finally {
+        this.clear();
+        clearActivity();
+        this.endReason = reason;
       }
-      this.clear();
-      clearActivity();
-      this.endReason = reason;
     },
     clear() {
       this.user = null;
       this.token = null;
       this.expiresAt = 0;
       sessionStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(`${SESSION_KEY}.token`);
+      sessionStorage.removeItem(`${SESSION_KEY}.expires`);
     }
   }
 });

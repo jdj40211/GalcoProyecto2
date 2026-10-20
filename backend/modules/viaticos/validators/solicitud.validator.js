@@ -31,10 +31,14 @@ const payload = Joi.object({
 module.exports = {
   create: payload,
   update: payload,
+  legalize: Joi.object({
+    anticipo: Joi.number().min(0).max(1000000000).required(),
+    soportes: Joi.array().items(Joi.string().max(80)).min(1).max(100).unique().required()
+  }),
   id: Joi.object({ id: Joi.string().required() }),
   reject: Joi.object({ motivo: Joi.string().trim().min(3).max(1000).required() }),
   query: Joi.object({
-    estado: Joi.string().valid('todos', 'borrador', 'enviada', 'aprobada', 'rechazada').default('todos'),
+    estado: Joi.string().valid('todos', 'borrador', 'enviada', 'aprobada', 'rechazada', 'legalizada').default('todos'),
     desde: date.allow('').default(''),
     hasta: date.allow('').default('')
   })

@@ -2,7 +2,7 @@
 
 # GALCO · Cotizador y Gestión de Viáticos
 
-**Proyecto Integrador 2 · Sprint 1 · MVP integrado**
+**Proyecto Integrador 2 · Sprint 2 · Incremento en revisión**
 
 ![Azul GALCO](https://img.shields.io/badge/Azul_GALCO-0053A1?style=flat-square&labelColor=0053A1&color=0053A1)
 ![Verde GALCO](https://img.shields.io/badge/Verde_GALCO-7DB928?style=flat-square&labelColor=7DB928&color=7DB928)
@@ -12,6 +12,31 @@ _Trabajo bien Hecho!_
 </div>
 
 ## Resultado
+
+Sprint 2 añade catálogo buscable, variantes editables, adaptador de envío de PDF,
+notificaciones internas, legalización con soportes y administración de usuarios.
+El alcance confirmado mantiene Cotizador + Viáticos.
+
+- [Alcance y límites](docs/wiki/22-Sprint-2-Alcance-y-trazabilidad.md)
+- [Finanzas y riesgos](docs/wiki/23-Sprint-2-Caso-de-negocio.md)
+- [Estrategia de pruebas](docs/wiki/24-Sprint-2-Pruebas-automaticas.md)
+- [Protocolo de usabilidad](docs/wiki/25-Sprint-2-Protocolo-usabilidad.md)
+- [Casos manuales](docs/wiki/26-Sprint-2-Pruebas-funcionales.md)
+- [Cierre y evidencias pendientes](docs/wiki/27-Sprint-2-Ceremonias-y-cierre.md)
+- [Sustentación](docs/wiki/28-Sprint-2-Sustentacion.md)
+
+Administrador demo: `admin` / `AdminDemo2026!`. Las sesiones demo se validan
+en servidor, expiran en una hora y se revocan al salir o desactivar la cuenta.
+Las cuentas creadas en demo se pierden al reiniciar. Firebase real se usa con
+`AUTH_BYPASS=false` y configuración concordante en frontend.
+
+La recuperación por correo requiere Firebase. El envío de cotizaciones requiere
+`MAIL_ENDPOINT` (HTTPS) y `MAIL_TOKEN`. El endpoint debe aceptar JSON
+`{to, subject, text, attachments:[{filename,contentType,content}]}` (contenido base64)
+y responder `{id:"identificador-del-envio"}` al aceptar el mensaje.
+No se envían correos durante las pruebas; se sustituye el proveedor.
+El OCR real requiere configurar el proveedor existente y validarlo con comprobantes
+autorizados. Sin esas configuraciones no se declara validación productiva.
 
 Aplicación web interna que reúne dos módulos bajo una sola sesión, navegación y sistema visual:
 
@@ -48,6 +73,13 @@ npm run verify
 
 La verificación ejecuta formato, ESLint, pruebas, compilación y auditoría de dependencias. GitHub Actions repite los controles en cada Pull Request a `main` y CodeQL analiza seguridad.
 
+El informe de esta entrega está en [Resultados Sprint 2](docs/evidencias/sprint-2/RESULTADOS.md).
+El frontend fija `@grpc/grpc-js` 1.14.6 mediante `overrides` porque el paquete
+Firebase incluye una versión transitiva con alertas de seguridad. El backend
+conserva alertas moderadas transitivas de Firebase Admin; su actualización mayor
+y las pruebas con servicios reales quedan registradas como deuda. El control de
+auditoría bloquea alertas altas y críticas.
+
 ## Configuración productiva
 
 Copiar los archivos `.env.example` de frontend y backend y configurar:
@@ -71,4 +103,4 @@ La documentación completa está en [`docs/wiki/`](docs/wiki) y puede sincroniza
 
 ## Estado honesto de cierre
 
-El código, la documentación, las pruebas automatizadas y los controles de calidad están preparados en la rama `feature/sprint-1-mvp`. Para declarar el Sprint cerrado aún se requieren evidencia real de ceremonias, ejecución manual final, aceptación del Product Owner, revisión de un compañero y CI verde en GitHub.
+El incremento de Sprint 2 se prepara en la rama `codex/sprint-2-mvp`. Para declarar el Sprint cerrado aún se requieren evidencia real de ceremonias, ejecución manual final, aceptación del Product Owner, revisión de un compañero y CI verde en GitHub. Las integraciones externas requieren configuración y validación con las cuentas del proyecto.

@@ -12,5 +12,6 @@ module.exports = {
   remove: (request) => service.remove(request.params.id, credentials(request)),
   send: (request) => service.send(request.params.id, credentials(request)),
   approve: (request) => service.approve(request.params.id, credentials(request)),
+  legalize: (request) => service.legalize(request.params.id, request.payload, credentials(request)),
   reject: (request) => service.reject(request.params.id, request.payload.motivo, credentials(request))
 };

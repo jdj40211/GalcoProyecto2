@@ -15,7 +15,7 @@ const puppeteer = require('puppeteer');
 const { createServer } = require('../app');
 
 const root = path.resolve(__dirname, '..', '..');
-const evidenceDirectory = path.join(root, 'docs', 'evidencias', 'sprint-1', 'ui');
+const evidenceDirectory = process.env.EVIDENCE_DIR || path.join(root, 'tmp', 'e2e-sprint1');
 const baseUrl = `http://127.0.0.1:${process.env.PORT}`;
 
 async function clickButton(page, text) {

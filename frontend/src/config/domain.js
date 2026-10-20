@@ -10,6 +10,7 @@ export const expenseTypes = [
 ];
 
 export const statuses = {
+  legalizada: { label: 'Legalizada', tone: 'success', icon: 'fa-check-double' },
   borrador: { label: 'Borrador', tone: 'info', icon: 'fa-pen' },
   enviada: { label: 'Enviada', tone: 'warning', icon: 'fa-paper-plane' },
   aprobada: { label: 'Aprobada', tone: 'success', icon: 'fa-circle-check' },
