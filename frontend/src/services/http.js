@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useAuthStore } from '@/stores/auth.store';
+import { isAuthDevMode, useAuthStore } from '@/stores/auth.store';
 
 const http = axios.create({
   baseURL: import.meta.env.VITE_API_BASE || '/api',
@@ -11,8 +11,10 @@ http.interceptors.request.use(async (config) => {
   const auth = useAuthStore();
   const token = await auth.getToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
-  const devMode = import.meta.env.VITE_AUTH_BYPASS === 'true' || !import.meta.env.VITE_FIREBASE_API_KEY;
-  if (devMode && auth.user) config.headers['X-Dev-User'] = encodeURIComponent(JSON.stringify(auth.user));
+  // La cabecera de desarrollo solo aplica cuando el backend corre con AUTH_BYPASS.
+  if (auth.user && isAuthDevMode()) {
+    config.headers['X-Dev-User'] = encodeURIComponent(JSON.stringify(auth.user));
+  }
   return config;
 });
 

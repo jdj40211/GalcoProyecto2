@@ -10,6 +10,6 @@ export const viaticosService = {
   remove: (id) => http.delete(`/viaticos/${id}`).then(data),
   approve: (id) => http.post(`/viaticos/${id}/approve`).then(data),
   reject: (id, motivo) => http.post(`/viaticos/${id}/reject`, { motivo }).then(data),
-  extract: (payload) => http.post('/ocr/extract', payload, { timeout: 45000 }).then(data),
+  extract: (payload) => http.post('/ocr/extract', payload, { timeout: 60000 }).then(data),
   exportTxt: (ids, markExported = false) => http.post('/viaticos/export', { ids, markExported }).then(data)
 };

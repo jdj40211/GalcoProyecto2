@@ -2,14 +2,16 @@
   <BaseModal :open="Boolean(record)" title="Detalle del viático" @close="$emit('close')">
     <div v-if="record" class="detail-grid">
       <div class="detail-file">
+        <div v-if="loadingFile" class="loading-state">
+          <span class="spinner spinner-primary"></span>Cargando comprobante…
+        </div>
         <img
-          v-if="record.fileDataUrl && record.fileType?.startsWith('image/')"
-          :src="record.fileDataUrl"
+          v-else-if="fileDataUrl && record.fileType?.startsWith('image/')"
+          :src="fileDataUrl"
           alt="Comprobante adjunto"
         />
-        <div v-else-if="record.fileDataUrl" class="pdf-preview">
-          <i class="fas fa-file-pdf"></i><span>{{ record.fileName }}</span>
-        </div>
+        <PdfPreview v-else-if="fileDataUrl" :data-url="fileDataUrl" :file-name="record.fileName" />
+        <p v-else-if="fileError" class="text-danger">No fue posible cargar el comprobante. {{ fileError }}</p>
         <p v-else class="text-muted">Sin archivo adjunto.</p>
       </div>
       <dl class="detail-fields">
@@ -103,12 +105,37 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import BaseModal from './BaseModal.vue';
+import PdfPreview from './PdfPreview.vue';
 import StatusBadge from './StatusBadge.vue';
 import { expenseTypes } from '@/config/domain';
 import { formatCurrency, formatDateTime } from '@/services/format';
+import { viaticosService } from '@/services/viaticos.service';
 const props = defineProps({ record: { type: Object, default: null } });
 defineEmits(['close']);
 const typeName = computed(() => expenseTypes.find((type) => type.id === props.record?.tipoGasto)?.nombre || '—');
+
+// El listado llega sin el comprobante; se descarga solo al abrir el detalle.
+const fileDataUrl = ref('');
+const loadingFile = ref(false);
+const fileError = ref('');
+watch(
+  () => props.record,
+  async (record) => {
+    fileDataUrl.value = record?.fileDataUrl || '';
+    fileError.value = '';
+    if (!record?.fileName || fileDataUrl.value) return;
+    loadingFile.value = true;
+    try {
+      const full = await viaticosService.get(record.id);
+      if (props.record?.id === record.id) fileDataUrl.value = full.fileDataUrl || '';
+    } catch (error) {
+      if (props.record?.id === record.id) fileError.value = error.message;
+    } finally {
+      if (props.record?.id === record.id) loadingFile.value = false;
+    }
+  },
+  { immediate: true }
+);
 </script>

@@ -66,7 +66,8 @@ const configuracionSchema = Joi.object({
 
 const metadataSchema = Joi.object({
   cliente: Joi.string().trim().min(1).max(200).required(),
-  vendedor: Joi.string().trim().min(1).max(100).required(),
+  // El backend asigna el vendedor desde la sesión; este campo se acepta por compatibilidad y se ignora.
+  vendedor: Joi.string().trim().max(100).allow('').optional(),
   vigenciaHasta: Joi.date().iso().raw().optional(),
   observaciones: Joi.string().allow('').max(2000).optional()
 });

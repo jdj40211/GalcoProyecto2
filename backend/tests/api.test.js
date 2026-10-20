@@ -67,6 +67,39 @@ test('flujo completo: crear, aislar por usuario, aprobar y exportar', async (t) 
   assert.match(txt, /2026-09-02\|511515/);
 });
 
+test('el listado omite el comprobante y el detalle lo incluye', async (t) => {
+  repository.resetMemory();
+  const server = await createServer();
+  t.after(() => server.stop());
+  const fileDataUrl = `data:image/jpeg;base64,${'A'.repeat(100000)}`;
+  const created = await server.inject({
+    method: 'POST',
+    url: '/api/viaticos',
+    headers: header(commercial),
+    payload: {
+      usuario: commercial.nombre,
+      usuarioLogin: commercial.usuario,
+      fecha: '2026-10-20',
+      valor: 39400,
+      tipoGasto: 'alimentacion',
+      concepto: 'Almuerzo',
+      fileName: 'recibo.jpg',
+      fileType: 'image/jpeg',
+      fileDataUrl
+    }
+  });
+  const { id } = JSON.parse(created.payload);
+  const listed = JSON.parse(
+    (await server.inject({ method: 'GET', url: '/api/viaticos', headers: header(commercial) })).payload
+  );
+  assert.equal(listed.items[0].fileName, 'recibo.jpg');
+  assert.equal('fileDataUrl' in listed.items[0], false);
+  const detail = JSON.parse(
+    (await server.inject({ method: 'GET', url: `/api/viaticos/${id}`, headers: header(commercial) })).payload
+  );
+  assert.equal(detail.fileDataUrl, fileDataUrl);
+});
+
 test('OCR demo conserva el contrato de extracción', async (t) => {
   const server = await createServer();
   t.after(() => server.stop());

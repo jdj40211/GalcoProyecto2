@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test": "node --test tests/api.test.js tests/calculos.test.js tests/solicitudes.test.js tests/suite.test.js"
+    "usuarios": "node scripts/usuarios.js",
+    "test": "node --test tests/api.test.js tests/auth.test.js tests/calculos.test.js tests/ocr.test.js tests/solicitudes.test.js tests/suite.test.js"
   },
   "engines": {
     "node": ">=22.13.0"
@@ -17,7 +18,7 @@
     "@hapi/inert": "7.1.2",
     "dotenv": "16.4.7",
     "firebase-admin": "13.10.0",
-    "handlebars": "4.7.9",
+    "handlebars": "4.7.10",
     "joi": "17.13.7",
     "mongodb": "7.2.0",
     "mongoose": "8.24.4",

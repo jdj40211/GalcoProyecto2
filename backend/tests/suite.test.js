@@ -166,3 +166,68 @@ test('los roles y validadores bloquean operaciones no autorizadas o inválidas',
   });
   assert.equal(commercialApproval.statusCode, 403);
 });
+
+test('cada vendedor ve solo sus cotizaciones y contabilidad las ve todas', async (t) => {
+  repository.resetMemory();
+  const server = await createServer();
+  t.after(() => server.stop());
+  const otherSeller = { uid: 'dev-lgomez', nombre: 'Laura Gómez', usuario: 'lgomez', rol: 'comercial' };
+  const create = async (user, cliente) =>
+    JSON.parse(
+      (
+        await server.inject({
+          method: 'POST',
+          url: '/api/cotizador',
+          headers: headers(user),
+          payload: {
+            configuracion: configuration,
+            metadata: { cliente, vendedor: 'Nombre escrito a mano' }
+          }
+        })
+      ).payload
+    ).data;
+
+  const mine = await create(commercial, 'Cliente de Juan');
+  const theirs = await create(otherSeller, 'Cliente de Laura');
+  assert.equal(mine.metadata.vendedor, 'Juan Díaz');
+  assert.equal(mine.metadata.vendedorLogin, 'jdiaz');
+
+  const listFor = async (user, query = '') =>
+    JSON.parse(
+      (await server.inject({ method: 'GET', url: `/api/cotizador${query}`, headers: headers(user) })).payload
+    ).data.map((q) => q.metadata.cliente);
+  assert.deepEqual(await listFor(commercial), ['Cliente de Juan']);
+  assert.deepEqual(await listFor(otherSeller), ['Cliente de Laura']);
+  assert.deepEqual((await listFor(accounting)).sort(), ['Cliente de Juan', 'Cliente de Laura']);
+  assert.deepEqual(await listFor(accounting, '?vendedor=laura'), ['Cliente de Laura']);
+  // Un comercial no puede filtrar para ver cotizaciones ajenas.
+  assert.deepEqual(await listFor(commercial, '?vendedor=laura'), []);
+
+  for (const [method, url, payload] of [
+    ['GET', `/api/cotizador/${theirs._id}`],
+    ['GET', `/api/cotizador/${theirs._id}/pdf`],
+    ['PATCH', `/api/cotizador/${theirs._id}/estado`, { estado: 'anulada' }]
+  ]) {
+    assert.equal(
+      (await server.inject({ method, url, payload, headers: headers(commercial) })).statusCode,
+      404,
+      `${method} ${url}`
+    );
+  }
+  assert.equal(
+    (await server.inject({ method: 'GET', url: `/api/cotizador/${theirs._id}`, headers: headers(accounting) }))
+      .statusCode,
+    200
+  );
+  assert.equal(
+    (
+      await server.inject({
+        method: 'PATCH',
+        url: `/api/cotizador/${mine._id}/estado`,
+        payload: { estado: 'enviada' },
+        headers: headers(commercial)
+      })
+    ).statusCode,
+    200
+  );
+});

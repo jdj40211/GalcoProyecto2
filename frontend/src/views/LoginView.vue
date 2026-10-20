@@ -65,7 +65,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useAuthStore } from '@/stores/auth.store';
+import { isAuthDevMode, useAuthStore } from '@/stores/auth.store';
 
 const auth = useAuthStore();
 const router = useRouter();
@@ -75,7 +75,7 @@ const password = ref('');
 const showPassword = ref(false);
 const loading = ref(false);
 const error = ref('');
-const devMode = import.meta.env.VITE_AUTH_BYPASS === 'true' || !import.meta.env.VITE_FIREBASE_API_KEY;
+const devMode = isAuthDevMode();
 
 async function submit() {
   error.value = '';
@@ -85,8 +85,8 @@ async function submit() {
     await auth.init();
     const destination = route.query.redirect || (auth.isAccounting ? '/contabilidad' : '/carga');
     await router.replace(destination);
-  } catch (_err) {
-    error.value = 'Usuario o contraseña incorrectos.';
+  } catch (err) {
+    error.value = err.message || 'No fue posible iniciar sesión.';
   } finally {
     loading.value = false;
   }
