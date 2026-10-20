@@ -3,6 +3,20 @@ import { auth as firebaseAuth, isFirebaseConfigured } from '@/services/firebase'
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 
 const SESSION_KEY = 'galco.viaticos.session';
+const ROLES = ['comercial', 'contabilidad'];
+const devMode = () => !isFirebaseConfigured || import.meta.env.VITE_AUTH_BYPASS === 'true';
+
+const loginErrors = {
+  'auth/invalid-credential': 'Usuario o contraseña incorrectos.',
+  'auth/invalid-email': 'Usuario o contraseña incorrectos.',
+  'auth/user-not-found': 'Usuario o contraseña incorrectos.',
+  'auth/wrong-password': 'Usuario o contraseña incorrectos.',
+  'auth/user-disabled': 'Este usuario está desactivado. Contacta al administrador.',
+  'auth/too-many-requests': 'Demasiados intentos fallidos. Espera unos minutos e inténtalo de nuevo.',
+  'auth/network-request-failed': 'Sin conexión con el servicio de autenticación. Revisa tu conexión a internet.'
+};
+
+export { devMode as isAuthDevMode };
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({ user: null, ready: false, token: null, expiresAt: 0 }),
@@ -19,11 +33,17 @@ export const useAuthStore = defineStore('auth', {
       }
       const result = await fbUser.getIdTokenResult();
       const claims = result.claims || {};
+      // Solo las cuentas con rol asignado por el script de usuarios pueden entrar.
+      if (!ROLES.includes(claims.role)) {
+        await signOut(firebaseAuth);
+        this.clear();
+        throw new Error('Tu usuario no tiene un rol asignado. Contacta al administrador.');
+      }
       this.user = {
         uid: fbUser.uid,
         nombre: fbUser.displayName || claims.name || fbUser.email,
         usuario: claims.usuario || fbUser.email,
-        rol: claims.role || 'comercial',
+        rol: claims.role,
         email: fbUser.email
       };
       this.token = result.token;
@@ -31,7 +51,7 @@ export const useAuthStore = defineStore('auth', {
     },
     async init() {
       if (this.ready) return;
-      if (!isFirebaseConfigured || import.meta.env.VITE_AUTH_BYPASS === 'true') {
+      if (devMode()) {
         try {
           this.user = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
         } catch {
@@ -43,14 +63,18 @@ export const useAuthStore = defineStore('auth', {
       }
       await new Promise((resolve) =>
         onAuthStateChanged(firebaseAuth, async (fbUser) => {
-          await this.setFirebaseUser(fbUser);
+          try {
+            await this.setFirebaseUser(fbUser);
+          } catch {
+            this.clear();
+          }
           this.ready = true;
           resolve();
         })
       );
     },
     async login(usuario, password) {
-      if (!isFirebaseConfigured || import.meta.env.VITE_AUTH_BYPASS === 'true') {
+      if (devMode()) {
         const users = [
           { nombre: 'Juan Díaz', usuario: 'jdiaz', password: '1234', rol: 'comercial' },
           { nombre: 'Laura Gómez', usuario: 'lgomez', password: '1234', rol: 'comercial' },
@@ -67,11 +91,16 @@ export const useAuthStore = defineStore('auth', {
       const email = usuario.includes('@')
         ? usuario
         : `${usuario}@${import.meta.env.VITE_FIREBASE_EMAIL_DOMAIN || 'galco.com.co'}`;
-      const credential = await signInWithEmailAndPassword(firebaseAuth, email, password);
+      let credential;
+      try {
+        credential = await signInWithEmailAndPassword(firebaseAuth, email, password);
+      } catch (error) {
+        throw new Error(loginErrors[error.code] || 'No fue posible iniciar sesión.', { cause: error });
+      }
       await this.setFirebaseUser(credential.user);
     },
     async getToken() {
-      if (!isFirebaseConfigured || import.meta.env.VITE_AUTH_BYPASS === 'true') return this.token;
+      if (devMode()) return this.token;
       if (!firebaseAuth?.currentUser) return null;
       return firebaseAuth.currentUser.getIdToken(Date.now() > this.expiresAt - 60000);
     },

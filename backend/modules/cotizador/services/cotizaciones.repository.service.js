@@ -36,11 +36,12 @@ async function create(data) {
   return clone(document);
 }
 
-async function list({ page, limit, cliente, vendedor, estado, desde, hasta }) {
+async function list({ page, limit, cliente, vendedor, vendedorLogin, estado, desde, hasta }) {
   if (config.persistence.mode === 'mongo') {
     const filter = {};
     if (cliente) filter['metadata.cliente'] = new RegExp(cliente, 'i');
     if (vendedor) filter['metadata.vendedor'] = new RegExp(vendedor, 'i');
+    if (vendedorLogin) filter['metadata.vendedorLogin'] = vendedorLogin;
     if (estado) filter.estado = estado;
     if (desde || hasta) {
       filter.createdAt = {};
@@ -67,6 +68,7 @@ async function list({ page, limit, cliente, vendedor, estado, desde, hasta }) {
       return (
         (!cliente || includes(item.metadata?.cliente, cliente)) &&
         (!vendedor || includes(item.metadata?.vendedor, vendedor)) &&
+        (!vendedorLogin || item.metadata?.vendedorLogin === vendedorLogin) &&
         (!estado || item.estado === estado) &&
         (!from || created >= from) &&
         (!to || created <= to)

@@ -22,6 +22,18 @@ const repository = require('../services/cotizaciones.repository.service');
 const { obtenerParametrosActivos } = require('../services/parametros.service');
 const { obtenerMapaPrecios } = require('../services/materiales.service');
 
+// Los comerciales solo acceden a sus propias cotizaciones; los demás roles ven todas.
+const seesAll = (credentials) =>
+  ['admin', 'contabilidad', 'consulta'].some((role) => credentials?.scope?.includes(role));
+const canAccess = (credentials, doc) => seesAll(credentials) || doc.metadata?.vendedorLogin === credentials?.usuario;
+
+async function findAccessible(request) {
+  const doc = await repository.getById(request.params.id);
+  // Una cotización ajena responde igual que una inexistente para no revelar que existe.
+  if (!doc || !canAccess(request.auth.credentials, doc)) throw Boom.notFound('Cotización no encontrada');
+  return doc;
+}
+
 // ---------------------------------------------------------------------------
 // POST /cotizador/calculate
 // Simulación: calcula pero no persiste. Ideal para el "Calcular" del formulario.
@@ -56,7 +68,7 @@ async function calculateCotizacion(request, h) {
 async function createCotizacion(request, h) {
   try {
     const { configuracion, metadata } = request.payload;
-    const uidCreador = request.auth?.credentials?.uid || null;
+    const credentials = request.auth.credentials;
 
     const [parametros, preciosTubos] = await Promise.all([obtenerParametrosActivos(), obtenerMapaPrecios()]);
     const resultado = calculos.calcularCotizacionCompleta(configuracion, {
@@ -74,8 +86,12 @@ async function createCotizacion(request, h) {
       precios: resultado.precios,
       parametrosAplicados: resultado.parametros,
       metadata: {
-        ...metadata,
-        creadoPor: uidCreador
+        cliente: metadata.cliente,
+        observaciones: metadata.observaciones || '',
+        vigenciaHasta: metadata.vigenciaHasta || '',
+        vendedor: credentials.name,
+        vendedorLogin: credentials.usuario,
+        creadoPor: credentials.uid || null
       },
       estado: 'borrador'
     });
@@ -97,7 +113,19 @@ async function getCotizaciones(request, h) {
   try {
     const { page, limit, cliente, vendedor, estado, desde, hasta } = request.query;
 
-    const { items, total } = await repository.list({ page, limit, cliente, vendedor, estado, desde, hasta });
+    const credentials = request.auth.credentials;
+    const vendedorLogin = seesAll(credentials) ? undefined : credentials.usuario;
+
+    const { items, total } = await repository.list({
+      page,
+      limit,
+      cliente,
+      vendedor,
+      vendedorLogin,
+      estado,
+      desde,
+      hasta
+    });
 
     return h
       .response({
@@ -122,9 +150,7 @@ async function getCotizaciones(request, h) {
 // ---------------------------------------------------------------------------
 async function getCotizacionById(request, h) {
   try {
-    const { id } = request.params;
-    const doc = await repository.getById(id);
-    if (!doc) throw Boom.notFound('Cotización no encontrada');
+    const doc = await findAccessible(request);
     return h.response({ ok: true, data: doc }).code(200);
   } catch (err) {
     if (err.isBoom) throw err;
@@ -141,6 +167,7 @@ async function cambiarEstado(request, h) {
     const { id } = request.params;
     const { estado } = request.payload;
 
+    await findAccessible(request);
     const doc = await repository.updateStatus(id, estado);
     if (!doc) throw Boom.notFound('Cotización no encontrada');
     return h.response({ ok: true, data: doc }).code(200);
@@ -156,9 +183,7 @@ async function cambiarEstado(request, h) {
 // ---------------------------------------------------------------------------
 async function generarPdfCotizacion(request, h) {
   try {
-    const { id } = request.params;
-    const doc = await repository.getById(id);
-    if (!doc) throw Boom.notFound('Cotización no encontrada');
+    const doc = await findAccessible(request);
 
     // Carga diferida del servicio PDF — es pesado (Chromium)
     const { renderCotizacionPdf } = require('../services/pdf.service');

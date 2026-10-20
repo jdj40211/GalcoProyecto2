@@ -16,8 +16,9 @@ const schema = Joi.object({
   FIREBASE_CREDENTIALS_PATH: Joi.string().allow('').default(''),
   FIREBASE_CREDENTIALS_JSON: Joi.string().allow('').default(''),
   FIREBASE_PROJECT_ID: Joi.string().allow('').default(''),
+  FIREBASE_EMAIL_DOMAIN: Joi.string().default('galco.com.co'),
   OCR_PROVIDER: Joi.string().valid('demo', 'openai', 'ocrspace', 'custom').default('demo'),
-  OCR_TIMEOUT_MS: Joi.number().integer().min(1000).default(20000),
+  OCR_TIMEOUT_MS: Joi.number().integer().min(1000).default(45000),
   OPENAI_API_KEY: Joi.string().allow('').default(''),
   OPENAI_MODEL: Joi.string().default('gpt-4.1-mini'),
   OCRSPACE_API_KEY: Joi.string().allow('').default(''),
@@ -43,7 +44,8 @@ module.exports = {
     bypass: value.AUTH_BYPASS,
     credentialsPath: value.FIREBASE_CREDENTIALS_PATH,
     credentialsJson: value.FIREBASE_CREDENTIALS_JSON,
-    projectId: value.FIREBASE_PROJECT_ID
+    projectId: value.FIREBASE_PROJECT_ID,
+    emailDomain: value.FIREBASE_EMAIL_DOMAIN
   },
   ocr: {
     provider: value.OCR_PROVIDER,

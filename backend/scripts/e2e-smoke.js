@@ -56,6 +56,9 @@ async function setValue(page, selector, value) {
   );
 }
 
+// La vigencia debe ser futura: una fecha fija vence y deja deshabilitado el botón Guardar.
+const inDays = (days) => new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
+
 async function login(page, username, password) {
   await setValue(page, '#username', username);
   await setValue(page, '#password', password);
@@ -92,9 +95,8 @@ async function run() {
     await page.waitForFunction(() => document.querySelector('#quote-arm')?.tagName === 'INPUT');
     await setValue(page, '#quote-type', 'Cercha');
     await page.waitForFunction(() => document.querySelector('#quote-arm')?.tagName === 'SELECT');
-    await setValue(page, '#quote-seller', 'Juan Díaz');
     await setValue(page, '#quote-client', 'Cliente de prueba Sprint 1');
-    await setValue(page, '#quote-valid-until', '2026-09-30');
+    await setValue(page, '#quote-valid-until', inDays(15));
     await clickButton(page, 'Calcular');
     await waitForText(page, 'TOTAL A FACTURAR');
     await setValue(page, '#quote-client', 'Cliente de prueba Sprint 1');
@@ -138,7 +140,8 @@ async function run() {
     await fileInput.uploadFile(path.join(root, 'README.md'));
     await waitForText(page, 'Formato no permitido');
     await fileInput.uploadFile(path.join(root, 'frontend', 'public', 'logo-galco.png'));
-    await waitForText(page, 'logo-galco.png');
+    // El logo mide 4714 px: la carga lo reduce a 2000 px y lo convierte a JPEG antes del OCR.
+    await waitForText(page, 'logo-galco.jpg');
     await clickButton(page, 'Procesar con IA / OCR');
     await page.waitForFunction(() => new URL(location.href).pathname === '/validacion');
     await waitForText(page, 'Confianza');

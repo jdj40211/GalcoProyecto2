@@ -2,11 +2,16 @@
 
 const crypto = require('node:crypto');
 const config = require('../../../config');
+const mongoose = require('mongoose');
 const Viatico = require('../models/viatico.model');
 const memory = [];
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const now = () => new Date().toISOString();
+// Un id mal formado no existe: evita el CastError de Mongoose que terminaba en 500.
+const validId = (id) => mongoose.isValidObjectId(id);
+// El listado omite el comprobante en base64 (puede pesar varios MB); el detalle lo incluye.
+const withoutFile = ({ fileDataUrl: _fileDataUrl, ...item }) => item;
 
 function matches(record, filters) {
   if (filters.estado && filters.estado !== 'todos' && record.estado !== filters.estado) return false;
@@ -32,16 +37,21 @@ module.exports = {
           ...(filters.hasta ? { $lte: filters.hasta } : {})
         };
       return Viatico.find(query)
+        .select('-fileDataUrl')
         .sort({ createdAt: -1 })
         .lean({ virtuals: true })
         .then((items) => items.map((item) => ({ ...item, id: String(item._id), _id: undefined })));
     }
     return clone(
-      memory.filter((item) => matches(item, filters)).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      memory
+        .filter((item) => matches(item, filters))
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .map(withoutFile)
     );
   },
   async get(id) {
-    if (config.persistence.mode === 'mongo') return Viatico.findById(id).then((item) => item?.toJSON() || null);
+    if (config.persistence.mode === 'mongo')
+      return validId(id) ? Viatico.findById(id).then((item) => item?.toJSON() || null) : null;
     return clone(memory.find((item) => item.id === id) || null);
   },
   async create(data) {
@@ -53,16 +63,18 @@ module.exports = {
   },
   async update(id, changes) {
     if (config.persistence.mode === 'mongo')
-      return Viatico.findByIdAndUpdate(id, changes, { new: true, runValidators: true }).then(
-        (item) => item?.toJSON() || null
-      );
+      return validId(id)
+        ? Viatico.findByIdAndUpdate(id, changes, { new: true, runValidators: true }).then(
+            (item) => item?.toJSON() || null
+          )
+        : null;
     const index = memory.findIndex((item) => item.id === id);
     if (index < 0) return null;
     memory[index] = { ...memory[index], ...clone(changes), updatedAt: now() };
     return clone(memory[index]);
   },
   async remove(id) {
-    if (config.persistence.mode === 'mongo') return Boolean(await Viatico.findByIdAndDelete(id));
+    if (config.persistence.mode === 'mongo') return validId(id) && Boolean(await Viatico.findByIdAndDelete(id));
     const index = memory.findIndex((item) => item.id === id);
     if (index < 0) return false;
     memory.splice(index, 1);

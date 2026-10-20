@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test": "node --test tests/api.test.js tests/calculos.test.js tests/solicitudes.test.js tests/suite.test.js"
+    "usuarios": "node scripts/usuarios.js",
+    "test": "node --test tests/api.test.js tests/auth.test.js tests/calculos.test.js tests/ocr.test.js tests/solicitudes.test.js tests/suite.test.js"
   },
   "engines": {
     "node": ">=22.13.0"
