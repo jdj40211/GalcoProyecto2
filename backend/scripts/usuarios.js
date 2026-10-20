@@ -12,7 +12,8 @@
  *   node scripts/usuarios.js listar
  *
  * <usuario> es el nombre corto con el que se inicia sesión (jdiaz) o un correo completo.
- * Las contraseñas se generan al azar y se muestran una sola vez.
+ * Nadie conoce la contraseña: `crear` y `clave` imprimen un enlace de Firebase, válido por una
+ * hora, para que la persona defina la suya. Si vence, se genera otro con `clave`.
  */
 
 'use strict';
@@ -26,11 +27,17 @@ const config = require('../config');
 const firebase = require('../utils/firebase');
 
 const ROLES = ['comercial', 'contabilidad'];
-const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
 
 const emailOf = (usuario) => (usuario.includes('@') ? usuario : `${usuario}@${config.auth.emailDomain}`);
-const generatePassword = (length = 12) =>
-  Array.from(crypto.randomBytes(length), (byte) => ALPHABET[byte % ALPHABET.length]).join('');
+// Clave aleatoria que nadie ve: solo bloquea la cuenta hasta que la persona use su enlace.
+const unknownPassword = () => crypto.randomBytes(24).toString('base64url');
+
+async function printSetupLink(usuario) {
+  const link = await firebase.auth().generatePasswordResetLink(emailOf(usuario));
+  console.log('  Enlace para definir la contraseña (vence en 1 hora):');
+  console.log(`  ${link}`);
+  console.log('Envía el enlace de forma privada a la persona.');
+}
 
 function fail(message) {
   console.error(`Error: ${message}`);
@@ -54,13 +61,13 @@ const commands = {
   async crear(usuario, nombre, rol) {
     if (!usuario || !nombre || !rol) fail('uso: crear <usuario> "<Nombre completo>" <rol>');
     requireRole(rol);
-    const password = generatePassword();
-    const user = await firebase.auth().createUser({ email: emailOf(usuario), password, displayName: nombre });
+    const user = await firebase
+      .auth()
+      .createUser({ email: emailOf(usuario), password: unknownPassword(), displayName: nombre });
     await firebase.auth().setCustomUserClaims(user.uid, { role: rol, usuario });
     console.log(`Usuario creado: ${nombre} (${rol})`);
     console.log(`  Inicio de sesión: ${usuario}`);
-    console.log(`  Contraseña:       ${password}`);
-    console.log('Entrega la contraseña de forma privada; no se vuelve a mostrar.');
+    await printSetupLink(usuario);
   },
 
   async rol(usuario, rol) {
@@ -76,10 +83,11 @@ const commands = {
   async clave(usuario) {
     if (!usuario) fail('uso: clave <usuario>');
     const user = await findUser(usuario);
-    const password = generatePassword();
-    await firebase.auth().updateUser(user.uid, { password });
+    // La contraseña anterior deja de servir y se cierran las sesiones abiertas.
+    await firebase.auth().updateUser(user.uid, { password: unknownPassword() });
     await firebase.auth().revokeRefreshTokens(user.uid);
-    console.log(`Nueva contraseña de ${usuario}: ${password}`);
+    console.log(`Contraseña de ${usuario} restablecida.`);
+    await printSetupLink(usuario);
   },
 
   async desactivar(usuario) {

@@ -216,6 +216,10 @@ test('los errores de OpenAI llegan al usuario con un mensaje claro', async (t) =
 test('una respuesta lenta de OpenAI se corta al superar el tiempo máximo', async (t) => {
   mockOpenAI(t, () => new Promise(() => {}));
   config.ocr.timeoutMs = 50;
+  // El temporizador de AbortSignal.timeout no mantiene vivo el proceso: en Node 22 la prueba
+  // terminaría antes del corte. En producción lo mantiene vivo el servidor HTTP.
+  const keepAlive = setTimeout(() => {}, 5000);
+  t.after(() => clearTimeout(keepAlive));
   global.fetch = (_url, options) =>
     new Promise((_, reject) => options.signal.addEventListener('abort', () => reject(options.signal.reason)));
   await assert.rejects(
