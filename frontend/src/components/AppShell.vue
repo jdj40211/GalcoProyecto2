@@ -33,9 +33,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, onBeforeUnmount, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
+import { startIdleWatch } from '@/services/session';
 
 const auth = useAuthStore();
 const router = useRouter();
@@ -69,4 +70,17 @@ async function logout() {
   await auth.logout();
   router.push('/login');
 }
+
+// El shell solo existe con sesión abierta: mientras está montado se vigila la inactividad.
+let stopIdleWatch = () => {};
+onMounted(() => {
+  if (!auth.isAuthenticated) return;
+  stopIdleWatch = startIdleWatch({
+    onExpire: async () => {
+      await auth.logout('inactividad');
+      router.replace('/login');
+    }
+  });
+});
+onBeforeUnmount(() => stopIdleWatch());
 </script>

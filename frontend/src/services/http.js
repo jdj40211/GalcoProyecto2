@@ -26,7 +26,16 @@ http.interceptors.response.use(
       message: error.response?.data?.message || error.message || 'No fue posible completar la operación.',
       details: error.response?.data || null
     };
-    if (normalized.status === 401) useAuthStore().clear();
+    // Un token vencido o revocado cierra la sesión y lleva al login con el aviso correspondiente.
+    const auth = useAuthStore();
+    if (normalized.status === 401 && auth.user) {
+      // Se marca antes de rechazar para que la pantalla que hizo la petición no muestre además un toast de error.
+      auth.endReason = 'expirada';
+      auth
+        .logout('expirada')
+        .then(() => import('@/router'))
+        .then(({ default: router }) => router.replace({ name: 'login' }));
+    }
     return Promise.reject(normalized);
   }
 );
