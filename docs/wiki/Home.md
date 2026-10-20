@@ -1,6 +1,6 @@
 # Proyecto GALCO — Cotizador y Gestión de Viáticos
 
-> Proyecto Integrador 2 · Sprint 1 · MVP integrado ejecutable.
+> Proyecto Integrador 2 · Sprint 2 · Cotizador y Viáticos. Incremento en revisión.
 
 ## Producto actual
 
@@ -9,6 +9,16 @@ La aplicación une Cotizador de postes y Gestión de viáticos en una SPA Vue 3 
 El módulo de Hojas de vida permanece como iniciativa del Product Backlog de Sprint 0; no se declara construido en este MVP hasta una decisión del Product Owner.
 
 ## Índice
+
+### Entrega Sprint 2
+
+- [Alcance y trazabilidad](22-Sprint-2-Alcance-y-trazabilidad.md)
+- [Caso de negocio V2: finanzas y riesgos](23-Sprint-2-Caso-de-negocio.md)
+- [Pruebas automáticas](24-Sprint-2-Pruebas-automaticas.md)
+- [Protocolo de usabilidad (planeado para Sprint 3)](25-Sprint-2-Protocolo-usabilidad.md)
+- [Casos funcionales manuales](26-Sprint-2-Pruebas-funcionales.md)
+- [Ceremonias y checklist de cierre](27-Sprint-2-Ceremonias-y-cierre.md)
+- [Guion de sustentación](28-Sprint-2-Sustentacion.md)
 
 ### Contexto y Design Thinking
 

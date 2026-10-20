@@ -219,6 +219,7 @@ test('cada vendedor ve solo sus cotizaciones y contabilidad las ve todas', async
       .statusCode,
     200
   );
+  // Sprint 2 exige confirmación del proveedor: cambiar solo el estado no prueba un envío.
   assert.equal(
     (
       await server.inject({
@@ -228,6 +229,6 @@ test('cada vendedor ve solo sus cotizaciones y contabilidad las ve todas', async
         headers: headers(commercial)
       })
     ).statusCode,
-    200
+    400
   );
 });

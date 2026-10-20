@@ -99,7 +99,9 @@ const parametrosAplicadosSchema = new Schema(
     // Costos comunes
     costoPorKgPlatina: Number,
     costoPorM2Pintura: Number,
-    costoGalvanizadoPorKg: Number
+    costoGalvanizadoPorKg: Number,
+    longComercialTuboM: Number,
+    preciosTubos: Schema.Types.Mixed
   },
   { _id: false }
 );
@@ -132,6 +134,9 @@ const cotizacionSchema = new Schema(
     metadata: { type: metadataSchema, required: true },
 
     version: { type: Number, default: 1 },
+    revisiones: { type: [Schema.Types.Mixed], default: [] },
+    varianteDe: { type: String, default: '' },
+    envio: { type: Schema.Types.Mixed, default: null },
     estado: {
       type: String,
       enum: ['borrador', 'enviada', 'aprobada', 'rechazada', 'anulada'],

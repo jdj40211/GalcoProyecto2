@@ -4,6 +4,7 @@ dist/
 .env.local
 coverage/
 npm-debug.log*
+tmp/
 
 # Credenciales de Firebase Admin
 *firebase-adminsdk*.json

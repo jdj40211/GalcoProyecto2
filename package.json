@@ -17,7 +17,8 @@
     "format:check": "prettier --check \"frontend/src/**/*.{js,vue}\" \"backend/**/*.js\" \"*.{json,md}\" \"docs/**/*.md\"",
     "audit:prod": "npm audit --omit=dev --audit-level=high && npm --prefix frontend audit --omit=dev --audit-level=high && npm --prefix backend audit --omit=dev --audit-level=high",
     "test": "npm --prefix frontend run test && npm --prefix backend test",
-    "test:e2e": "node backend/scripts/e2e-smoke.js",
+    "test:e2e": "node backend/scripts/e2e-smoke.js && node backend/scripts/e2e-sprint2.js",
+    "test:coverage": "npm --prefix backend run test:coverage",
     "verify": "npm run format:check && npm run lint && npm run test && npm run build && npm run test:e2e && npm run audit:prod",
     "preview": "npm run build && cross-env SERVE_FRONTEND=true npm --prefix backend start",
     "start": "cross-env NODE_ENV=production SERVE_FRONTEND=true npm --prefix backend start"

@@ -584,6 +584,29 @@ input[readonly] {
   font-size: 13px;
   text-align: left;
 }
+.ocr-adjust {
+  width: 100%;
+  max-width: 520px;
+}
+.ocr-adjust summary {
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ocr-adjust fieldset {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.ocr-adjust fieldset p {
+  margin: 0;
+  color: var(--text-light);
+  font-size: 13px;
+}
 .ocr-steps i {
   margin-top: 2px;
   color: var(--accent);
