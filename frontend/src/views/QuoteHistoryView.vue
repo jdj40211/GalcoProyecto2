@@ -94,12 +94,16 @@
                 </button>
                 <button class="btn btn-ghost btn-xs" :disabled="busy" @click="duplicate(c)">Duplicar variante</button>
                 <RouterLink
-                  v-if="c.estado === 'borrador'"
+                  v-if="c.estado === 'borrador' && canModify(c)"
                   class="btn btn-ghost btn-xs"
                   :to="`/cotizador/${c._id}/editar`"
                   >Editar</RouterLink
                 >
-                <button v-if="c.estado === 'borrador'" class="btn btn-ghost btn-xs" @click="sending = c">
+                <button
+                  v-if="c.estado === 'borrador' && canModify(c)"
+                  class="btn btn-ghost btn-xs"
+                  @click="sending = c"
+                >
                   Enviar por correo
                 </button>
               </td>
@@ -184,6 +188,7 @@ async function send() {
 // Cada comercial ve solo sus cotizaciones; el filtro y la columna de vendedor son para contabilidad.
 const auth = useAuthStore();
 const columnas = computed(() => (auth.isCommercial ? 8 : 9));
+const canModify = (quote) => quote.metadata?.creadoPor === auth.user?.uid || auth.user?.rol === 'admin';
 
 const filtros = reactive({
   cliente: '',
