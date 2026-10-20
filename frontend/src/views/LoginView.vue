@@ -50,6 +50,7 @@
           <span v-if="loading" class="spinner"></span><i v-else class="fas fa-sign-in-alt"></i
           >{{ loading ? 'Ingresando…' : 'Iniciar sesión' }}
         </button>
+        <button class="forgot-link" type="button" @click="recovering = true">¿Olvidaste tu contraseña?</button>
         <div v-if="devMode" class="login-hint">
           <strong>Usuarios de prueba</strong>
           <div><span class="role-badge role-comercial">Comercial</span><code>jdiaz</code> / <code>1234</code></div>
@@ -59,6 +60,9 @@
         </div>
       </form>
     </section>
+    <BaseModal :open="recovering" title="Recuperar contraseña" @close="recovering = false">
+      <ForgotPassword :initial-user="username" @close="recovering = false" />
+    </BaseModal>
   </main>
 </template>
 
@@ -66,6 +70,8 @@
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { isAuthDevMode, useAuthStore } from '@/stores/auth.store';
+import BaseModal from '@/components/BaseModal.vue';
+import ForgotPassword from '@/components/ForgotPassword.vue';
 
 const auth = useAuthStore();
 const router = useRouter();
@@ -74,6 +80,7 @@ const username = ref('');
 const password = ref('');
 const showPassword = ref(false);
 const loading = ref(false);
+const recovering = ref(false);
 const error = ref('');
 const devMode = isAuthDevMode();
 
