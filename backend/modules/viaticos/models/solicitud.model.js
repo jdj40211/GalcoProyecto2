@@ -27,10 +27,11 @@ const solicitudSchema = new mongoose.Schema(
     totalSolicitado: { type: Number, default: 0, min: 0 },
     estado: {
       type: String,
-      enum: ['borrador', 'enviada', 'aprobada', 'rechazada'],
+      enum: ['borrador', 'enviada', 'aprobada', 'rechazada', 'legalizada'],
       default: 'borrador',
       index: true
     },
+    legalizacion: { type: mongoose.Schema.Types.Mixed, default: null },
     enviadoEn: Date,
     aprobadoPor: String,
     aprobadoEn: Date,

@@ -2,7 +2,7 @@ name: Calidad continua
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'codex/**']
   pull_request:
     branches: [main]
 
@@ -44,3 +44,11 @@ jobs:
         run: npm run test:e2e
       - name: Auditar dependencias de producción
         run: npm run audit:prod
+      - name: Conservar capturas de las pruebas de navegador
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-navegador
+          path: |
+            tmp/e2e-sprint1/
+            docs/evidencias/sprint-2/ui/

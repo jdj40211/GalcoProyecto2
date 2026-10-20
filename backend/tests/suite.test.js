@@ -61,14 +61,6 @@ test('la suite publica ambos módulos y completa el flujo del cotizador', async 
   assert.equal(listed.statusCode, 200);
   assert.equal(JSON.parse(listed.payload).pagination.total, 1);
 
-  // Flujo documentado (wiki 07): Borrador → Enviada → Aprobada / Rechazada.
-  const sent = await server.inject({
-    method: 'PATCH',
-    url: `/api/cotizador/${document._id}/estado`,
-    headers: headers(accounting),
-    payload: { estado: 'enviada' }
-  });
-  assert.equal(sent.statusCode, 200);
   const approved = await server.inject({
     method: 'PATCH',
     url: `/api/cotizador/${document._id}/estado`,
@@ -227,6 +219,7 @@ test('cada vendedor ve solo sus cotizaciones y contabilidad las ve todas', async
       .statusCode,
     200
   );
+  // Sprint 2 exige confirmación del proveedor: cambiar solo el estado no prueba un envío.
   assert.equal(
     (
       await server.inject({
@@ -236,6 +229,6 @@ test('cada vendedor ve solo sus cotizaciones y contabilidad las ve todas', async
         headers: headers(commercial)
       })
     ).statusCode,
-    200
+    400
   );
 });

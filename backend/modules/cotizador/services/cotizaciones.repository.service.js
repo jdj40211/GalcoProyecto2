@@ -85,7 +85,7 @@ async function getById(id) {
   return document ? clone(document) : null;
 }
 
-async function updateStatus(id, estado, entrada) {
+async function updateStatus(id, estado, entrada = { estado, fecha: new Date() }) {
   if (config.persistence.mode === 'mongo') {
     return Cotizacion.findByIdAndUpdate(
       id,
@@ -131,9 +131,18 @@ async function listForIndicators({ vendedorLogin, desde, hasta } = {}) {
   );
 }
 
+async function update(id, changes) {
+  if (config.persistence.mode === 'mongo')
+    return Cotizacion.findByIdAndUpdate(id, { $set: changes }, { new: true, runValidators: true }).lean();
+  const document = memory.find((item) => item._id === id);
+  if (!document) return null;
+  Object.assign(document, clone(changes), { updatedAt: new Date().toISOString() });
+  return clone(document);
+}
+
 function resetMemory() {
   memory.length = 0;
   sequences.clear();
 }
 
-module.exports = { nextConsecutive, create, list, listForIndicators, getById, updateStatus, resetMemory };
+module.exports = { nextConsecutive, create, list, listForIndicators, getById, updateStatus, update, resetMemory };

@@ -10,6 +10,7 @@ export const expenseTypes = [
 ];
 
 export const statuses = {
+  legalizada: { label: 'Legalizada', tone: 'success', icon: 'fa-check-double' },
   borrador: { label: 'Borrador', tone: 'info', icon: 'fa-pen' },
   enviada: { label: 'Enviada', tone: 'warning', icon: 'fa-paper-plane' },
   aprobada: { label: 'Aprobada', tone: 'success', icon: 'fa-circle-check' },
@@ -25,7 +26,8 @@ export const statuses = {
   error: { label: 'Con error', tone: 'warning', icon: 'fa-triangle-exclamation' }
 };
 
-// Estados de una cotización y su flujo (wiki 07). El backend valida las mismas transiciones.
+// Estados de una cotización. Las decisiones que Contabilidad registra a mano desde el historial;
+// "Enviada" solo la marca el envío por correo confirmado. El backend valida las mismas reglas.
 export const quoteStates = {
   borrador: 'Borrador',
   enviada: 'Enviada',
@@ -34,7 +36,7 @@ export const quoteStates = {
   anulada: 'Anulada'
 };
 export const quoteTransitions = {
-  borrador: ['enviada', 'anulada'],
+  borrador: ['aprobada', 'rechazada', 'anulada'],
   enviada: ['aprobada', 'rechazada', 'anulada'],
   aprobada: [],
   rechazada: [],

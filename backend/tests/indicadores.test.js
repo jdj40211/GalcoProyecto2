@@ -35,7 +35,9 @@ test('el flujo de estados sigue el proceso comercial documentado', () => {
   assert.equal(puedeCambiar('borrador', 'enviada'), true);
   assert.equal(puedeCambiar('enviada', 'aprobada'), true);
   assert.equal(puedeCambiar('enviada', 'rechazada'), true);
-  assert.equal(puedeCambiar('borrador', 'aprobada'), false);
+  // Una cotización entregada por otro medio se decide directamente desde borrador.
+  assert.equal(puedeCambiar('borrador', 'aprobada'), true);
+  assert.equal(puedeCambiar('enviada', 'borrador'), false);
   assert.equal(puedeCambiar('aprobada', 'anulada'), false);
   assert.equal(puedeCambiar('rechazada', 'enviada'), false);
 });
@@ -118,16 +120,33 @@ test('la API registra el historial, valida el flujo y calcula indicadores por ro
     [['borrador', 'Juan Díaz']]
   );
 
-  const skipped = await change(commercial, mine._id, 'aprobada');
-  assert.equal(skipped.statusCode, 409);
-  assert.match(JSON.parse(skipped.payload).message, /borrador no puede pasar a aprobada/);
-  assert.equal((await change(commercial, mine._id, 'enviada')).statusCode, 200);
-  const approved = JSON.parse((await change(commercial, mine._id, 'aprobada')).payload).data;
+  // Reglas de main: "enviada" solo por correo confirmado y la decisión la registra Contabilidad.
+  assert.equal((await change(accounting, mine._id, 'enviada')).statusCode, 400);
+  assert.equal((await change(commercial, mine._id, 'aprobada')).statusCode, 403);
+  const mail = require('../modules/cotizador/services/envio.service');
+  t.mock.method(mail, 'send', async ({ to }) => ({
+    proveedorId: 'test',
+    destinatario: to,
+    fecha: new Date().toISOString()
+  }));
+  const sent = await server.inject({
+    method: 'POST',
+    url: `/api/cotizador/${mine._id}/enviar`,
+    headers: headers(commercial),
+    payload: { destinatario: 'cliente@example.com' }
+  });
+  assert.equal(sent.statusCode, 200);
+  const approved = JSON.parse((await change(accounting, mine._id, 'aprobada')).payload).data;
   assert.deepEqual(
-    approved.historialEstados.map((item) => item.estado),
-    ['borrador', 'enviada', 'aprobada']
+    approved.historialEstados.map((item) => [item.estado, item.usuario]),
+    [
+      ['borrador', 'Juan Díaz'],
+      ['enviada', 'Juan Díaz'],
+      ['aprobada', 'Andrés Castro']
+    ]
   );
-  assert.equal((await change(commercial, mine._id, 'anulada')).statusCode, 409);
+  const reopened = await change(accounting, mine._id, 'anulada');
+  assert.equal(reopened.statusCode, 409);
 
   const indicators = async (user, query = '') =>
     JSON.parse(
@@ -152,4 +171,65 @@ test('la API registra el historial, valida el flujo y calcula indicadores por ro
     headers: headers(accounting)
   });
   assert.equal(invalid.statusCode, 400);
+});
+
+test('el envío por correo y las variantes respetan el historial de estados', async (t) => {
+  repository.resetMemory();
+  const server = await createServer();
+  t.after(() => server.stop());
+  const mail = require('../modules/cotizador/services/envio.service');
+  t.mock.method(mail, 'send', async ({ to }) => ({
+    proveedorId: 'test-mail',
+    destinatario: to,
+    fecha: new Date().toISOString()
+  }));
+  const original = JSON.parse(
+    (
+      await server.inject({
+        method: 'POST',
+        url: '/api/cotizador',
+        headers: headers(commercial),
+        payload: { configuracion: configuration, metadata: { cliente: 'Cliente correo' } }
+      })
+    ).payload
+  ).data;
+
+  // Una variante empieza su propio historial: no hereda las fechas de la original.
+  const variant = JSON.parse(
+    (
+      await server.inject({
+        method: 'POST',
+        url: `/api/cotizador/${original._id}/duplicar`,
+        headers: headers(commercial)
+      })
+    ).payload
+  ).data;
+  assert.deepEqual(
+    variant.historialEstados.map((item) => item.estado),
+    ['borrador']
+  );
+  assert.ok(new Date(variant.historialEstados[0].fecha) >= new Date(original.historialEstados[0].fecha));
+
+  const sent = await server.inject({
+    method: 'POST',
+    url: `/api/cotizador/${original._id}/enviar`,
+    headers: headers(commercial),
+    payload: { destinatario: 'cliente@example.com' }
+  });
+  assert.equal(sent.statusCode, 200);
+  const data = JSON.parse(sent.payload).data;
+  assert.equal(data.estado, 'enviada');
+  assert.equal(data.envio.destinatario, 'cliente@example.com');
+  assert.deepEqual(
+    data.historialEstados.map((item) => [item.estado, item.usuario]),
+    [
+      ['borrador', 'Juan Díaz'],
+      ['enviada', 'Juan Díaz']
+    ]
+  );
+  const indicators = JSON.parse(
+    (await server.inject({ method: 'GET', url: '/api/cotizador/indicadores', headers: headers(commercial) })).payload
+  ).data;
+  assert.equal(indicators.porEstado.enviada.cantidad, 1);
+  assert.equal(typeof indicators.tiempoRespuestaHoras, 'number');
 });

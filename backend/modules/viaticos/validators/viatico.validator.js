@@ -15,6 +15,7 @@ const states = [
 const types = ['alimentacion', 'transporte', 'hospedaje', 'combustible', 'peajes', 'parqueadero', 'papeleria', 'otros'];
 
 const record = Joi.object({
+  solicitudId: Joi.string().allow('').max(80),
   usuario: Joi.string().max(120).required(),
   usuarioLogin: Joi.string().max(120).required(),
   fecha: Joi.string()

@@ -28,14 +28,25 @@ module.exports = {
   register: async (server) => {
     server.auth.scheme('firebase-scheme', () => ({
       authenticate: async (request, h) => {
-        if (config.auth.bypass) return h.authenticated({ credentials: devCredentials(request) });
+        if (config.auth.bypass) {
+          // Las cabeceras heredadas solo existen en pruebas de API aisladas.
+          if (
+            config.env === 'test' &&
+            request.headers.authorization === 'Bearer dev-token' &&
+            request.headers['x-dev-user']
+          )
+            return h.authenticated({ credentials: devCredentials(request) });
+          return h.authenticated({
+            credentials: require('../modules/usuarios.service').authenticate(request.headers.authorization?.slice(7))
+          });
+        }
         const header = request.headers.authorization;
         if (!header?.startsWith('Bearer '))
           throw Boom.unauthorized('Token no enviado.', ['Bearer error="invalid_request"']);
         // La cabecera WWW-Authenticate se fija aparte: Boom copiaría el mensaje con tildes y la cabecera solo admite ASCII.
         let decoded;
         try {
-          decoded = await firebase.auth().verifyIdToken(header.slice(7).trim());
+          decoded = await firebase.auth().verifyIdToken(header.slice(7).trim(), true);
         } catch {
           throw Boom.unauthorized('Token inválido o expirado.', ['Bearer error="invalid_token"']);
         }

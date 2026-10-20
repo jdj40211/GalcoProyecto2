@@ -35,7 +35,7 @@ export default [
     }
   },
   {
-    files: ['backend/scripts/e2e-smoke.js'],
+    files: ['backend/scripts/e2e-*.js'],
     languageOptions: {
       globals: { ...globals.node, ...globals.browser }
     }

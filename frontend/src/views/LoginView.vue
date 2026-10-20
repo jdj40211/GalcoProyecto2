@@ -96,7 +96,12 @@ async function submit() {
   try {
     await auth.login(username.value, password.value);
     await auth.init();
-    const destination = route.query.redirect || (auth.isAccounting ? '/contabilidad' : '/carga');
+    const destination =
+      typeof route.query.redirect === 'string' &&
+      route.query.redirect.startsWith('/') &&
+      !route.query.redirect.startsWith('//')
+        ? route.query.redirect
+        : auth.home;
     await router.replace(destination);
   } catch (err) {
     error.value = err.message || 'No fue posible iniciar sesión.';

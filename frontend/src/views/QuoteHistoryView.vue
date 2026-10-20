@@ -92,7 +92,7 @@
                 <div class="estado-cell">
                   <span class="badge" :class="estadoBadgeClass(c.estado)">{{ quoteStates[c.estado] || c.estado }}</span>
                   <select
-                    v-if="quoteTransitions[c.estado]?.length"
+                    v-if="canDecide && quoteTransitions[c.estado]?.length"
                     :id="`estado-${c._id}`"
                     class="estado-select"
                     :aria-label="`Cambiar el estado de ${c.consecutivo}`"
@@ -110,6 +110,20 @@
                 <button class="btn btn-ghost btn-xs" @click="descargar(c)" aria-label="Descargar cotización en PDF">
                   <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
                   PDF
+                </button>
+                <button class="btn btn-ghost btn-xs" :disabled="busy" @click="duplicate(c)">Duplicar variante</button>
+                <RouterLink
+                  v-if="c.estado === 'borrador' && canModify(c)"
+                  class="btn btn-ghost btn-xs"
+                  :to="`/cotizador/${c._id}/editar`"
+                  >Editar</RouterLink
+                >
+                <button
+                  v-if="c.estado === 'borrador' && canModify(c)"
+                  class="btn btn-ghost btn-xs"
+                  @click="sending = c"
+                >
+                  Enviar por correo
                 </button>
               </td>
             </tr>
@@ -157,24 +171,64 @@
         </div>
       </template>
     </BaseModal>
+
+    <BaseModal :open="Boolean(sending)" title="Enviar cotización" @close="sending = null">
+      <form @submit.prevent="send">
+        <label for="quote-recipient">Correo del cliente</label>
+        <input id="quote-recipient" v-model.trim="recipient" type="email" required />
+        <p>Se enviará el PDF de {{ sending?.consecutivo }}. El estado cambiará cuando el proveedor acepte el envío.</p>
+        <button class="btn btn-primary" :disabled="busy">Enviar cotización</button>
+      </form>
+    </BaseModal>
   </div>
 </template>
 
 <script setup>
 import { computed, ref, reactive, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import BaseModal from '@/components/BaseModal.vue';
+import http from '@/services/http';
 import { useAuthStore } from '@/stores/auth.store';
 import { useCotizadorStore } from '@/stores/cotizador.store';
 import { useToastStore } from '@/stores/toast.store';
 import cotizadorApi from '@/services/cotizador.service';
 import { money, dateShort, estadoBadgeClass } from '@/services/format';
-import BaseModal from '@/components/BaseModal.vue';
 import { quoteStates, quoteTransitions } from '@/config/domain';
 
 const store = useCotizadorStore();
 const toast = useToastStore();
+const router = useRouter(),
+  busy = ref(false),
+  sending = ref(null),
+  recipient = ref('');
+async function duplicate(c) {
+  busy.value = true;
+  try {
+    const result = await http.post(`/cotizador/${c._id}/duplicar`);
+    await router.push(`/cotizador/${result.data.data._id}/editar`);
+  } catch (err) {
+    toast.show(err.message, 'danger');
+  } finally {
+    busy.value = false;
+  }
+}
+async function send() {
+  busy.value = true;
+  try {
+    await http.post(`/cotizador/${sending.value._id}/enviar`, { destinatario: recipient.value });
+    sending.value = null;
+    await buscar();
+    toast.show('El proveedor aceptó el envío.', 'success');
+  } catch (err) {
+    toast.show(err.message, 'danger');
+  } finally {
+    busy.value = false;
+  }
+}
 // Cada comercial ve solo sus cotizaciones; el filtro y la columna de vendedor son para contabilidad.
 const auth = useAuthStore();
 const columnas = computed(() => (auth.isCommercial ? 8 : 9));
+const canModify = (quote) => quote.metadata?.creadoPor === auth.user?.uid || auth.user?.rol === 'admin';
 
 const filtros = reactive({
   cliente: '',
@@ -186,6 +240,8 @@ const page = ref(1);
 
 // El cambio de estado se confirma antes de enviarlo: los estados finales no tienen vuelta atrás.
 const cambio = ref(null);
+// Registrar la decisión del cliente es tarea de Contabilidad (regla de main, HU-10).
+const canDecide = computed(() => ['admin', 'contabilidad'].includes(auth.user?.rol));
 const guardandoEstado = ref(false);
 function pedirCambio(cotizacion, event) {
   cambio.value = { cotizacion, estado: event.target.value };

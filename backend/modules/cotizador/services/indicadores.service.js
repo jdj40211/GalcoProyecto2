@@ -10,8 +10,10 @@
 const ESTADOS = ['borrador', 'enviada', 'aprobada', 'rechazada', 'anulada'];
 
 // Una cotización se envía al cliente y él decide; aprobada, rechazada y anulada son finales.
+// "Enviada" solo la registra el envío por correo confirmado. Desde borrador también se puede decidir:
+// cubre cotizaciones entregadas por otro medio, aunque entonces no se mide el tiempo de respuesta.
 const TRANSICIONES = {
-  borrador: ['enviada', 'anulada'],
+  borrador: ['enviada', 'aprobada', 'rechazada', 'anulada'],
   enviada: ['aprobada', 'rechazada', 'anulada'],
   aprobada: [],
   rechazada: [],

@@ -22,6 +22,62 @@ const failAction = (_request, _h, err) => {
 };
 
 const routes = [
+  {
+    method: 'GET',
+    path: '/cotizador/configuraciones',
+    options: {
+      auth: { strategy: 'firebase', scope: ['admin', 'comercial', 'contabilidad'] },
+      validate: {
+        query: Joi.object({
+          q: Joi.string().allow('').max(120).default(''),
+          incluirInactivas: Joi.boolean().default(false)
+        })
+      },
+      handler: (request) =>
+        require('../services/catalogo.service').list(
+          request.query.q,
+          request.query.incluirInactivas &&
+            request.auth.credentials.scope.some((role) => ['admin', 'contabilidad'].includes(role))
+        )
+    }
+  },
+  {
+    method: 'PATCH',
+    path: '/cotizador/configuraciones/{codigo}',
+    options: {
+      auth: { strategy: 'firebase', scope: ['admin', 'contabilidad'] },
+      validate: { payload: Joi.object({ activo: Joi.boolean().required() }) },
+      handler: (request) =>
+        require('../services/catalogo.service').setActive(request.params.codigo, request.payload.activo)
+    }
+  },
+  {
+    method: 'POST',
+    path: '/cotizador/{id}/duplicar',
+    options: {
+      auth: { strategy: 'firebase', scope: ['admin', 'comercial', 'contabilidad'] },
+      validate: { params: v.idParams },
+      handler: controller.duplicateQuote
+    }
+  },
+  {
+    method: 'PUT',
+    path: '/cotizador/{id}',
+    options: {
+      auth: { strategy: 'firebase', scope: ['admin', 'comercial', 'contabilidad'] },
+      validate: { params: v.idParams, payload: v.createPayload },
+      handler: controller.editQuote
+    }
+  },
+  {
+    method: 'POST',
+    path: '/cotizador/{id}/enviar',
+    options: {
+      auth: { strategy: 'firebase', scope: ['admin', 'comercial', 'contabilidad'] },
+      validate: { params: v.idParams, payload: Joi.object({ destinatario: Joi.string().email().max(254).required() }) },
+      handler: controller.sendQuote
+    }
+  },
   // -----------------------------------------------------------------------
   // GET /cotizador/catalogos  -> catálogos para alimentar el formulario
   // -----------------------------------------------------------------------
