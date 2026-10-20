@@ -85,15 +85,50 @@ async function getById(id) {
   return document ? clone(document) : null;
 }
 
-async function updateStatus(id, estado) {
+async function updateStatus(id, estado, entrada) {
   if (config.persistence.mode === 'mongo') {
-    return Cotizacion.findByIdAndUpdate(id, { estado }, { new: true, runValidators: true }).lean();
+    return Cotizacion.findByIdAndUpdate(
+      id,
+      { estado, $push: { historialEstados: entrada } },
+      { new: true, runValidators: true }
+    ).lean();
   }
   const document = memory.find((item) => item._id === id);
   if (!document) return null;
   document.estado = estado;
+  document.historialEstados = [...(document.historialEstados || []), clone(entrada)];
   document.updatedAt = new Date().toISOString();
   return clone(document);
+}
+
+// Solo los campos que usan los indicadores, sin paginar.
+const CAMPOS_INDICADORES =
+  'consecutivo estado createdAt metadata.vendedor metadata.vendedorLogin configuracion.tipoPoste configuracion.cantidad precios.precioFinal historialEstados';
+
+async function listForIndicators({ vendedorLogin, desde, hasta } = {}) {
+  // Días en la hora local del servidor; "hasta" incluye el día completo.
+  const from = desde ? new Date(`${desde}T00:00:00`).getTime() : null;
+  const to = hasta ? new Date(`${hasta}T23:59:59.999`).getTime() : null;
+  if (config.persistence.mode === 'mongo') {
+    const filter = {};
+    if (vendedorLogin) filter['metadata.vendedorLogin'] = vendedorLogin;
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) filter.createdAt.$gte = new Date(from);
+      if (to) filter.createdAt.$lte = new Date(to);
+    }
+    return Cotizacion.find(filter).select(CAMPOS_INDICADORES).lean();
+  }
+  return clone(
+    memory.filter((item) => {
+      const created = new Date(item.createdAt).getTime();
+      return (
+        (!vendedorLogin || item.metadata?.vendedorLogin === vendedorLogin) &&
+        (!from || created >= from) &&
+        (!to || created <= to)
+      );
+    })
+  );
 }
 
 function resetMemory() {
@@ -101,4 +136,4 @@ function resetMemory() {
   sequences.clear();
 }
 
-module.exports = { nextConsecutive, create, list, getById, updateStatus, resetMemory };
+module.exports = { nextConsecutive, create, list, listForIndicators, getById, updateStatus, resetMemory };

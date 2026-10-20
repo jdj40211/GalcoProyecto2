@@ -91,6 +91,24 @@ const routes = [
   },
 
   // -----------------------------------------------------------------------
+  // GET /cotizador/indicadores  -> indicadores comerciales (HU-12)
+  // -----------------------------------------------------------------------
+  {
+    method: 'GET',
+    path: '/cotizador/indicadores',
+    options: {
+      auth: { strategy: 'firebase', scope: ['admin', 'comercial', 'contabilidad', 'consulta'] },
+      description: 'Indicadores de cotizaciones: totales, tasa de aprobación y tiempos de respuesta',
+      tags: ['api', 'cotizador'],
+      validate: {
+        query: v.indicadoresQuery,
+        failAction
+      },
+      handler: controller.getIndicadores
+    }
+  },
+
+  // -----------------------------------------------------------------------
   // GET /cotizador/{id}  -> detalle
   // -----------------------------------------------------------------------
   {

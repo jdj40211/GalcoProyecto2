@@ -137,6 +137,16 @@ const cotizacionSchema = new Schema(
       enum: ['borrador', 'enviada', 'aprobada', 'rechazada', 'anulada'],
       default: 'borrador',
       index: true
+    },
+    // Cada cambio de estado con su fecha: permite medir tiempos de respuesta y de decisión (HU-12).
+    historialEstados: {
+      type: [
+        new Schema(
+          { estado: { type: String, required: true }, fecha: { type: Date, required: true }, usuario: String },
+          { _id: false }
+        )
+      ],
+      default: []
     }
   },
   {

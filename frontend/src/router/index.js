@@ -58,6 +58,12 @@ const routes = [
     component: () => import('@/views/QuoteHistoryView.vue'),
     meta: { roles: ['comercial', 'contabilidad'], title: 'Historial de cotizaciones' }
   },
+  {
+    path: '/cotizador/indicadores',
+    name: 'quote-indicators',
+    component: () => import('@/views/QuoteIndicatorsView.vue'),
+    meta: { roles: ['comercial', 'contabilidad'], title: 'Indicadores de cotizaciones' }
+  },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ];
 

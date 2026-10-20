@@ -21,6 +21,7 @@ const calculos = require('../services/calculos.service');
 const repository = require('../services/cotizaciones.repository.service');
 const { obtenerParametrosActivos } = require('../services/parametros.service');
 const { obtenerMapaPrecios } = require('../services/materiales.service');
+const { calcularIndicadores, puedeCambiar } = require('../services/indicadores.service');
 
 // Los comerciales solo acceden a sus propias cotizaciones; los demás roles ven todas.
 const seesAll = (credentials) =>
@@ -93,7 +94,8 @@ async function createCotizacion(request, h) {
         vendedorLogin: credentials.usuario,
         creadoPor: credentials.uid || null
       },
-      estado: 'borrador'
+      estado: 'borrador',
+      historialEstados: [{ estado: 'borrador', fecha: new Date(), usuario: credentials.name }]
     });
 
     return h.response({ ok: true, data: doc }).code(201);
@@ -146,6 +148,26 @@ async function getCotizaciones(request, h) {
 }
 
 // ---------------------------------------------------------------------------
+// GET /cotizador/indicadores?desde=&hasta=  (HU-12)
+// Un comercial ve los de sus cotizaciones; los demás roles ven todas.
+// ---------------------------------------------------------------------------
+async function getIndicadores(request, h) {
+  try {
+    const credentials = request.auth.credentials;
+    const { desde, hasta } = request.query;
+    const docs = await repository.listForIndicators({
+      vendedorLogin: seesAll(credentials) ? undefined : credentials.usuario,
+      desde,
+      hasta
+    });
+    return h.response({ ok: true, data: calcularIndicadores(docs) }).code(200);
+  } catch (err) {
+    request.log(['error', 'cotizador', 'indicadores'], err);
+    throw Boom.badImplementation('Error calculando indicadores', err);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // GET /cotizador/{id}
 // ---------------------------------------------------------------------------
 async function getCotizacionById(request, h) {
@@ -167,8 +189,14 @@ async function cambiarEstado(request, h) {
     const { id } = request.params;
     const { estado } = request.payload;
 
-    await findAccessible(request);
-    const doc = await repository.updateStatus(id, estado);
+    const actual = await findAccessible(request);
+    if (!puedeCambiar(actual.estado, estado))
+      throw Boom.conflict(`Una cotización ${actual.estado} no puede pasar a ${estado}.`);
+    const doc = await repository.updateStatus(id, estado, {
+      estado,
+      fecha: new Date(),
+      usuario: request.auth.credentials.name
+    });
     if (!doc) throw Boom.notFound('Cotización no encontrada');
     return h.response({ ok: true, data: doc }).code(200);
   } catch (err) {
@@ -250,6 +278,7 @@ module.exports = {
   createCotizacion,
   getCotizaciones,
   getCotizacionById,
+  getIndicadores,
   cambiarEstado,
   generarPdfCotizacion,
   getCatalogos

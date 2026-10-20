@@ -25,6 +25,22 @@ export const statuses = {
   error: { label: 'Con error', tone: 'warning', icon: 'fa-triangle-exclamation' }
 };
 
+// Estados de una cotización y su flujo (wiki 07). El backend valida las mismas transiciones.
+export const quoteStates = {
+  borrador: 'Borrador',
+  enviada: 'Enviada',
+  aprobada: 'Aprobada',
+  rechazada: 'Rechazada',
+  anulada: 'Anulada'
+};
+export const quoteTransitions = {
+  borrador: ['enviada', 'anulada'],
+  enviada: ['aprobada', 'rechazada', 'anulada'],
+  aprobada: [],
+  rechazada: [],
+  anulada: []
+};
+
 export const fileRules = {
   maxBytes: 10 * 1024 * 1024,
   mimeTypes: ['image/jpeg', 'image/png', 'application/pdf'],
