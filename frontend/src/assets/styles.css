@@ -575,6 +575,19 @@ input[readonly] {
 .file-meta strong {
   color: var(--text);
 }
+.ocr-steps {
+  display: flex;
+  max-width: 520px;
+  gap: 8px;
+  margin: 0;
+  color: var(--text-light);
+  font-size: 13px;
+  text-align: left;
+}
+.ocr-steps i {
+  margin-top: 2px;
+  color: var(--accent);
+}
 .validation-layout {
   display: grid;
   grid-template-columns: minmax(300px, 1fr) minmax(380px, 1fr);

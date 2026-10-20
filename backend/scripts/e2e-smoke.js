@@ -140,8 +140,9 @@ async function run() {
     await fileInput.uploadFile(path.join(root, 'README.md'));
     await waitForText(page, 'Formato no permitido');
     await fileInput.uploadFile(path.join(root, 'frontend', 'public', 'logo-galco.png'));
-    // El logo mide 4714 px: la carga lo reduce a 2000 px y lo convierte a JPEG antes del OCR.
-    await waitForText(page, 'logo-galco.jpg');
+    await waitForText(page, 'logo-galco.png');
+    // El logo mide 4714 px: el OCR recibe una copia reducida y el original se conserva.
+    await waitForText(page, 'tamaño normalizado');
     await clickButton(page, 'Procesar con IA / OCR');
     await page.waitForFunction(() => new URL(location.href).pathname === '/validacion');
     await waitForText(page, 'Confianza');

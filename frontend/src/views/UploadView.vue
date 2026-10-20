@@ -41,6 +41,10 @@
         <i class="fas fa-paperclip"></i><strong>{{ workflow.file.name }}</strong
         ><span>{{ fileSize }}</span>
       </div>
+      <p v-if="improvements" class="ocr-steps">
+        <i class="fas fa-wand-magic-sparkles"></i>Para la lectura se envía una copia con {{ improvements }}. El original
+        se guarda sin cambios.
+      </p>
       <div class="button-row">
         <button class="btn btn-success" :disabled="processing" @click="process">
           <span v-if="processing" class="spinner"></span><i v-else class="fas fa-robot"></i
@@ -58,7 +62,8 @@ import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { fileRules } from '@/config/domain';
 import PdfPreview from '@/components/PdfPreview.vue';
-import { prepareReceiptFile } from '@/services/format';
+import { fileToDataUrl } from '@/services/format';
+import { preprocessReceiptImage, STEP_LABELS } from '@/services/receipt-image';
 import { viaticosService } from '@/services/viaticos.service';
 import { useWorkflowStore } from '@/stores/workflow.store';
 import { useToastStore } from '@/stores/toast.store';
@@ -71,6 +76,10 @@ const processing = ref(false);
 const dragover = ref(false);
 const isImage = computed(() => workflow.file?.type.startsWith('image/'));
 const fileSize = computed(() => `${Math.round((workflow.file?.size || 0) / 1024)} KB`);
+const improvements = computed(() => {
+  const labels = (workflow.ocr?.steps || []).map((step) => STEP_LABELS[step]);
+  return labels.length > 1 ? `${labels.slice(0, -1).join(', ')} y ${labels.at(-1)}` : labels[0] || '';
+});
 
 function openPicker() {
   if (!fileInput.value) return;
@@ -86,6 +95,7 @@ function onDrop(event) {
 }
 function validate(file) {
   if (!file || file.size === 0) return 'El archivo está vacío.';
+  if (file.size > fileRules.maxBytes) return 'El archivo supera el tamaño máximo de 10 MB.';
   const extension = file.name.split('.').pop()?.toLowerCase() || '';
   if (!fileRules.mimeTypes.includes(file.type) || !fileRules.extensions.includes(extension))
     return 'Formato no permitido. Usa JPG, JPEG, PNG o PDF.';
@@ -95,11 +105,9 @@ async function selectFile(file) {
   const error = validate(file);
   if (error) return toast.show(error, 'danger');
   try {
-    // Las fotos se comprimen antes de validar el tamaño, así una foto de celular grande sigue siendo aceptada.
-    const prepared = await prepareReceiptFile(file);
-    if (prepared.file.size > fileRules.maxBytes)
-      return toast.show('El archivo supera el tamaño máximo de 10 MB.', 'danger');
-    workflow.setFile(prepared.file, prepared.dataUrl);
+    // Si el navegador no puede procesar la imagen, el OCR recibe el original.
+    const [dataUrl, ocr] = await Promise.all([fileToDataUrl(file), preprocessReceiptImage(file).catch(() => null)]);
+    workflow.setFile(file, dataUrl, ocr);
     toast.show('Archivo cargado correctamente.', 'success');
   } catch (err) {
     toast.show(err?.message || 'No fue posible leer el archivo.', 'danger');
@@ -111,8 +119,8 @@ async function process() {
   try {
     const result = await viaticosService.extract({
       fileName: workflow.file.name,
-      fileType: workflow.file.type,
-      fileDataUrl: workflow.fileDataUrl
+      fileType: workflow.ocr?.type || workflow.file.type,
+      fileDataUrl: workflow.ocr?.dataUrl || workflow.fileDataUrl
     });
     workflow.setExtraction(result);
     toast.show(`Datos extraídos en ${((performance.now() - started) / 1000).toFixed(1)} s.`, 'success');
