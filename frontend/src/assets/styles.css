@@ -1139,6 +1139,28 @@ input[readonly] {
   background: var(--danger-light);
   color: var(--danger);
 }
+.forgot-link {
+  align-self: center;
+  padding: 4px;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.forgot-link:hover {
+  text-decoration: underline;
+}
+.forgot-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.forgot-intro {
+  margin: 0;
+  color: var(--text-light);
+}
 .login-hint {
   display: flex;
   flex-direction: column;
