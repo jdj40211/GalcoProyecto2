@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { auth as firebaseAuth, isFirebaseConfigured } from '@/services/firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { clearActivity, idleLimitMs, isIdleExpired, readActivity, recordActivity } from '@/services/session';
 
 const SESSION_KEY = 'galco.viaticos.session';
 const ROLES = ['comercial', 'contabilidad'];
@@ -19,7 +20,8 @@ const loginErrors = {
 export { devMode as isAuthDevMode };
 
 export const useAuthStore = defineStore('auth', {
-  state: () => ({ user: null, ready: false, token: null, expiresAt: 0 }),
+  // endReason explica en el login por qué se cerró la sesión: 'inactividad' o 'expirada'.
+  state: () => ({ user: null, ready: false, token: null, expiresAt: 0, endReason: '' }),
   getters: {
     isAuthenticated: (state) => Boolean(state.user),
     isAccounting: (state) => state.user?.rol === 'contabilidad',
@@ -58,6 +60,7 @@ export const useAuthStore = defineStore('auth', {
           this.user = null;
         }
         this.token = this.user ? 'dev-token' : null;
+        await this.expireIfIdle();
         this.ready = true;
         return;
       }
@@ -68,6 +71,7 @@ export const useAuthStore = defineStore('auth', {
           } catch {
             this.clear();
           }
+          if (!this.ready) await this.expireIfIdle();
           this.ready = true;
           resolve();
         })
@@ -86,6 +90,7 @@ export const useAuthStore = defineStore('auth', {
         this.user = { nombre: found.nombre, usuario: found.usuario, rol: found.rol, uid: `dev-${found.usuario}` };
         this.token = 'dev-token';
         sessionStorage.setItem(SESSION_KEY, JSON.stringify(this.user));
+        this.startSession();
         return;
       }
       const email = usuario.includes('@')
@@ -98,17 +103,29 @@ export const useAuthStore = defineStore('auth', {
         throw new Error(loginErrors[error.code] || 'No fue posible iniciar sesión.', { cause: error });
       }
       await this.setFirebaseUser(credential.user);
+      this.startSession();
+    },
+    startSession() {
+      this.endReason = '';
+      recordActivity();
+    },
+    // Una sesión que quedó abierta más allá del límite de inactividad (pestaña cerrada,
+    // equipo suspendido) se cierra al volver a abrir la aplicación.
+    async expireIfIdle() {
+      if (this.user && isIdleExpired(readActivity(), idleLimitMs())) await this.logout('inactividad');
     },
     async getToken() {
       if (devMode()) return this.token;
       if (!firebaseAuth?.currentUser) return null;
       return firebaseAuth.currentUser.getIdToken(Date.now() > this.expiresAt - 60000);
     },
-    async logout() {
+    async logout(reason = '') {
       if (isFirebaseConfigured && firebaseAuth) {
         await signOut(firebaseAuth);
       }
       this.clear();
+      clearActivity();
+      this.endReason = reason;
     },
     clear() {
       this.user = null;

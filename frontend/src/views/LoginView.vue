@@ -10,6 +10,7 @@
         <div v-if="error" class="alert alert-danger" role="alert">
           <i class="fas fa-circle-exclamation"></i>{{ error }}
         </div>
+        <div v-else-if="notice" class="alert" role="status"><i class="fas fa-clock"></i>{{ notice }}</div>
         <div class="form-group">
           <label for="username">Usuario</label>
           <div class="input-icon-wrap">
@@ -63,7 +64,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { isAuthDevMode, useAuthStore } from '@/stores/auth.store';
 
@@ -76,6 +77,11 @@ const showPassword = ref(false);
 const loading = ref(false);
 const error = ref('');
 const devMode = isAuthDevMode();
+const notices = {
+  inactividad: 'Tu sesión se cerró por inactividad. Ingresa de nuevo para continuar.',
+  expirada: 'Tu sesión expiró. Ingresa de nuevo para continuar.'
+};
+const notice = computed(() => notices[auth.endReason] || '');
 
 async function submit() {
   error.value = '';
