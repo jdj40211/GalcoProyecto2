@@ -2,6 +2,8 @@
 
 const Boom = require('@hapi/boom');
 const repository = require('./solicitudes.repository.service');
+const notifications = require('./notificaciones.service');
+const receipts = require('./repository.service');
 
 const isAccounting = (credentials) => credentials.scope?.includes('contabilidad');
 const isOwner = (item, credentials) => item.solicitanteLogin === credentials.usuario;
@@ -55,13 +57,19 @@ module.exports = {
     const item = await editable(id, credentials);
     if (!item.gastos?.length || item.totalSolicitado <= 0)
       throw Boom.badRequest('Agrega al menos un gasto estimado válido antes de enviar.');
-    return repository.update(id, { estado: 'enviada', enviadoEn: new Date().toISOString() });
+    const updated = await repository.transition(id, 'borrador', {
+      estado: 'enviada',
+      enviadoEn: new Date().toISOString()
+    });
+    if (!updated) throw Boom.conflict('La solicitud cambió. Actualiza la página.');
+    await notifications.create(updated, 'enviada');
+    return updated;
   },
   async approve(id, credentials) {
     if (!isAccounting(credentials)) throw Boom.forbidden('Solo contabilidad puede aprobar solicitudes.');
     const item = await accessible(id, credentials);
     if (item.estado !== 'enviada') throw Boom.conflict('Solo se pueden aprobar solicitudes enviadas.');
-    return repository.update(id, {
+    const updated = await repository.transition(id, 'enviada', {
       estado: 'aprobada',
       aprobadoPor: credentials.name,
       aprobadoEn: new Date().toISOString(),
@@ -69,12 +77,15 @@ module.exports = {
       rechazadoEn: null,
       motivoRechazo: null
     });
+    if (!updated) throw Boom.conflict('La solicitud cambió. Actualiza la página.');
+    await notifications.create(updated, 'aprobada');
+    return updated;
   },
   async reject(id, reason, credentials) {
     if (!isAccounting(credentials)) throw Boom.forbidden('Solo contabilidad puede rechazar solicitudes.');
     const item = await accessible(id, credentials);
     if (item.estado !== 'enviada') throw Boom.conflict('Solo se pueden rechazar solicitudes enviadas.');
-    return repository.update(id, {
+    const updated = await repository.transition(id, 'enviada', {
       estado: 'rechazada',
       motivoRechazo: reason,
       rechazadoPor: credentials.name,
@@ -82,5 +93,42 @@ module.exports = {
       aprobadoPor: null,
       aprobadoEn: null
     });
+    if (!updated) throw Boom.conflict('La solicitud cambió. Actualiza la página.');
+    await notifications.create(updated, 'rechazada');
+    return updated;
+  },
+  async legalize(id, payload, credentials) {
+    const item = await accessible(id, credentials);
+    if (!isOwner(item, credentials) || isAccounting(credentials))
+      throw Boom.forbidden('Solo el solicitante puede legalizar su viaje.');
+    if (item.estado !== 'aprobada') throw Boom.conflict('La solicitud debe estar aprobada.');
+    const soportes = [];
+    for (const receiptId of payload.soportes) {
+      const receipt = await receipts.get(receiptId);
+      if (!receipt || receipt.usuarioLogin !== credentials.usuario || receipt.solicitudId !== id)
+        throw Boom.badRequest('Todos los soportes deben pertenecer a esta solicitud y al solicitante.');
+      if (receipt.moneda !== 'COP' || !Number.isFinite(receipt.valor) || receipt.valor <= 0)
+        throw Boom.badRequest('Los soportes deben tener valores positivos en COP.');
+      if (receipt.estado !== 'aprobado')
+        throw Boom.conflict('Contabilidad debe aprobar todos los soportes antes de legalizar.');
+      soportes.push({ id: receipt.id, valor: receipt.valor, concepto: receipt.concepto });
+    }
+    const totalReal = Math.round(soportes.reduce((sum, entry) => sum + entry.valor, 0) * 100) / 100;
+    const saldo = Math.round((payload.anticipo - totalReal) * 100) / 100;
+    const updated = await repository.transition(id, 'aprobada', {
+      estado: 'legalizada',
+      legalizacion: {
+        soportes,
+        anticipo: payload.anticipo,
+        totalReal,
+        saldo,
+        resultado: saldo > 0 ? 'reintegrar' : saldo < 0 ? 'reembolsar' : 'saldado',
+        fecha: new Date().toISOString(),
+        responsable: credentials.usuario
+      }
+    });
+    if (!updated) throw Boom.conflict('La solicitud ya fue legalizada o cambió de estado.');
+    await notifications.create(updated, 'legalizada');
+    return updated;
   }
 };

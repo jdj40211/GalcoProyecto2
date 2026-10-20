@@ -15,7 +15,7 @@ const puppeteer = require('puppeteer');
 const { createServer } = require('../app');
 
 const root = path.resolve(__dirname, '..', '..');
-const evidenceDirectory = path.join(root, 'docs', 'evidencias', 'sprint-1', 'ui');
+const evidenceDirectory = process.env.EVIDENCE_DIR || path.join(root, 'tmp', 'e2e-sprint1');
 const baseUrl = `http://127.0.0.1:${process.env.PORT}`;
 
 async function clickButton(page, text) {
@@ -94,7 +94,7 @@ async function run() {
     await page.waitForFunction(() => document.querySelector('#quote-arm')?.tagName === 'SELECT');
     await setValue(page, '#quote-seller', 'Juan Díaz');
     await setValue(page, '#quote-client', 'Cliente de prueba Sprint 1');
-    await setValue(page, '#quote-valid-until', '2026-09-30');
+    await setValue(page, '#quote-valid-until', new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10));
     await clickButton(page, 'Calcular');
     await waitForText(page, 'TOTAL A FACTURAR');
     await setValue(page, '#quote-client', 'Cliente de prueba Sprint 1');

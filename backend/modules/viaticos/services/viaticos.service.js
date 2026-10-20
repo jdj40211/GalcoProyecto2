@@ -3,6 +3,21 @@
 const Boom = require('@hapi/boom');
 const repository = require('./repository.service');
 const txt = require('./txt.service');
+const requests = require('./solicitudes.repository.service');
+
+async function validateRequest(id, credentials) {
+  if (!id) return;
+  const item = await requests.get(id);
+  if (!item || item.solicitanteLogin !== credentials.usuario)
+    throw Boom.forbidden('La solicitud no pertenece al usuario.');
+  if (item.estado !== 'aprobada') throw Boom.conflict('Adjunta gastos a una solicitud aprobada.');
+}
+
+async function requireUnlocked(record) {
+  if (!record.solicitudId) return;
+  const item = await requests.get(record.solicitudId);
+  if (item?.estado === 'legalizada') throw Boom.conflict('El soporte forma parte de una legalización cerrada.');
+}
 
 const isAccounting = (credentials) => credentials.scope?.includes('contabilidad');
 const isOwner = (record, credentials) =>
@@ -26,6 +41,7 @@ module.exports = {
   get: requireAccessible,
   async create(payload, credentials) {
     if (isAccounting(credentials)) throw Boom.forbidden('Contabilidad no registra viáticos comerciales.');
+    await validateRequest(payload.solicitudId, credentials);
     return repository.create({
       ...payload,
       usuario: credentials.name,
@@ -35,6 +51,9 @@ module.exports = {
   },
   async update(id, payload, credentials) {
     const record = await requireAccessible(id, credentials);
+    await requireUnlocked(record);
+    if (payload.solicitudId !== undefined && payload.solicitudId !== record.solicitudId)
+      throw Boom.conflict('La asociación del soporte no puede cambiarse.');
     if (!isAccounting(credentials) && !['pendiente_revision', 'incompleto', 'rechazado'].includes(record.estado))
       throw Boom.conflict('El viático ya no se puede editar.');
     const safePayload = { ...payload };
@@ -47,13 +66,14 @@ module.exports = {
   },
   async remove(id, credentials) {
     const record = await requireAccessible(id, credentials);
+    await requireUnlocked(record);
     if (!isAccounting(credentials) && !isOwner(record, credentials)) throw Boom.forbidden();
     await repository.remove(id);
     return { ok: true };
   },
   async approve(id, credentials) {
     if (!isAccounting(credentials)) throw Boom.forbidden('Solo contabilidad puede aprobar viáticos.');
-    await requireAccessible(id, credentials);
+    await requireUnlocked(await requireAccessible(id, credentials));
     return repository.update(id, {
       estado: 'aprobado',
       aprobadoPor: credentials.name,
@@ -65,7 +85,7 @@ module.exports = {
   },
   async reject(id, motivo, credentials) {
     if (!isAccounting(credentials)) throw Boom.forbidden('Solo contabilidad puede rechazar viáticos.');
-    await requireAccessible(id, credentials);
+    await requireUnlocked(await requireAccessible(id, credentials));
     return repository.update(id, {
       estado: 'rechazado',
       motivoRechazo: motivo,

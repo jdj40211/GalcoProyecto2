@@ -155,6 +155,16 @@
           <label for="observaciones">Observaciones</label
           ><textarea id="observaciones" v-model.trim="form.observaciones" rows="3"></textarea>
         </div>
+        <div class="form-group">
+          <label for="receipt-request">Solicitud de viaje aprobada</label>
+          <select id="receipt-request" v-model="solicitudId">
+            <option value="">Gasto independiente</option>
+            <option v-for="request in travelRequests" :key="request.id" :value="request.id">
+              {{ request.consecutivo }} — {{ request.destino }}
+            </option>
+          </select>
+          <small>Selecciona el viaje para incluir este soporte en su legalización.</small>
+        </div>
         <div class="button-row">
           <button class="btn btn-success btn-lg grow" :disabled="saving">
             <span v-if="saving" class="spinner"></span><i v-else class="fas fa-check"></i
@@ -167,7 +177,8 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch } from 'vue';
+import { reactive, ref, watch, onMounted } from 'vue';
+import { solicitudesService } from '@/services/solicitudes.service';
 import { useRouter } from 'vue-router';
 import EmptyState from '@/components/EmptyState.vue';
 import FieldBadge from '@/components/FieldBadge.vue';
@@ -191,6 +202,15 @@ watch(
 );
 const errors = reactive({});
 const saving = ref(false);
+const solicitudId = ref('');
+const travelRequests = ref([]);
+onMounted(async () => {
+  try {
+    travelRequests.value = (await solicitudesService.list({ estado: 'aprobada' })).items;
+  } catch (error) {
+    toast.show(error.message, 'danger');
+  }
+});
 const pending = (field) => workflow.extraction?.camposPendientes?.includes(field);
 const confidence = (field) =>
   workflow.extraction?.confianzaCampos?.[field] || workflow.extraction?.nivelConfianza || 'media';
@@ -220,6 +240,7 @@ async function submit() {
       }));
     const record = await records.create({
       ...form,
+      solicitudId: solicitudId.value,
       valor: Number(form.valor),
       subtotal: Number(form.subtotal) || 0,
       impuestos: Number(form.impuestos) || 0,

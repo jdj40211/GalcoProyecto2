@@ -264,6 +264,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import http from '@/services/http';
 import { useCotizadorStore } from '@/stores/cotizador.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { useToastStore } from '@/stores/toast.store';
@@ -273,6 +275,7 @@ import QuoteResults from '@/components/QuoteResults.vue';
 const store = useCotizadorStore();
 const auth = useAuthStore();
 const toast = useToastStore();
+const route = useRoute();
 
 const catalogos = computed(() => store.catalogos);
 
@@ -386,8 +389,15 @@ async function descargarPdf() {
 onMounted(async () => {
   try {
     await store.cargarCatalogos();
-  } catch (_error) {
-    /* visible en store.error */
+    if (route.query.codigo) {
+      const { data } = await http.get('/cotizador/configuraciones', { params: { q: route.query.codigo } });
+      const selected = data.find((item) => item.codigo === route.query.codigo && item.activo);
+      if (!selected) throw new Error('La configuración ya no está disponible.');
+      form.value = { ...selected.configuracion };
+      store.limpiarResultado();
+    }
+  } catch (error) {
+    store.error = error.message;
   }
 });
 </script>

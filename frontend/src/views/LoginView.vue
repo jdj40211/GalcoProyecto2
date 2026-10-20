@@ -50,6 +50,7 @@
           <span v-if="loading" class="spinner"></span><i v-else class="fas fa-sign-in-alt"></i
           >{{ loading ? 'Ingresando…' : 'Iniciar sesión' }}
         </button>
+        <RouterLink class="btn btn-ghost" to="/recuperar">Olvidé mi contraseña</RouterLink>
         <div v-if="devMode" class="login-hint">
           <strong>Usuarios de prueba</strong>
           <div><span class="role-badge role-comercial">Comercial</span><code>jdiaz</code> / <code>1234</code></div>
@@ -83,7 +84,12 @@ async function submit() {
   try {
     await auth.login(username.value, password.value);
     await auth.init();
-    const destination = route.query.redirect || (auth.isAccounting ? '/contabilidad' : '/carga');
+    const destination =
+      typeof route.query.redirect === 'string' &&
+      route.query.redirect.startsWith('/') &&
+      !route.query.redirect.startsWith('//')
+        ? route.query.redirect
+        : auth.home;
     await router.replace(destination);
   } catch (_err) {
     error.value = 'Usuario o contraseña incorrectos.';

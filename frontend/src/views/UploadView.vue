@@ -35,7 +35,12 @@
     </div>
 
     <div v-else class="upload-result">
-      <img v-if="isImage" class="receipt-image" :src="workflow.fileDataUrl" alt="Vista previa del comprobante" />
+      <img
+        v-if="isImage"
+        class="receipt-image"
+        :src="prepared || workflow.fileDataUrl"
+        alt="Vista previa del comprobante"
+      />
       <div v-else class="pdf-preview">
         <i class="fas fa-file-pdf"></i><span>{{ workflow.file.name }}</span>
       </div>
@@ -43,6 +48,22 @@
         <i class="fas fa-paperclip"></i><strong>{{ workflow.file.name }}</strong
         ><span>{{ fileSize }}</span>
       </div>
+      <fieldset v-if="isImage">
+        <legend>Preparar imagen para lectura</legend>
+        <label for="ocr-rotation">Rotación</label>
+        <select id="ocr-rotation" v-model.number="rotation">
+          <option :value="0">Original</option>
+          <option :value="90">90°</option>
+          <option :value="180">180°</option>
+          <option :value="270">270°</option>
+        </select>
+        <label for="ocr-crop">Recortar bordes (%)</label
+        ><input id="ocr-crop" v-model.number="crop" type="number" min="0" max="20" />
+        <label for="ocr-contrast">Contraste</label
+        ><input id="ocr-contrast" v-model.number="contrast" type="range" min="0.5" max="2" step="0.1" />
+        <button class="btn btn-outline" :disabled="processing" @click="preview">Ver preparación</button>
+        <p>Revisa que todos los datos sigan visibles. Se conserva el archivo original.</p>
+      </fieldset>
       <div class="button-row">
         <button class="btn btn-success" :disabled="processing" @click="process">
           <span v-if="processing" class="spinner"></span><i v-else class="fas fa-robot"></i
@@ -56,7 +77,8 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { preprocessImage } from '@/services/image-preprocess';
 import { useRouter } from 'vue-router';
 import { fileRules } from '@/config/domain';
 import { fileToDataUrl } from '@/services/format';
@@ -70,6 +92,33 @@ const router = useRouter();
 const fileInput = ref(null);
 const processing = ref(false);
 const dragover = ref(false);
+const crop = ref(0),
+  rotation = ref(0),
+  contrast = ref(1),
+  prepared = ref('');
+watch(
+  () => workflow.fileDataUrl,
+  () => {
+    prepared.value = '';
+    crop.value = 0;
+    rotation.value = 0;
+    contrast.value = 1;
+  }
+);
+watch([crop, rotation, contrast], () => {
+  prepared.value = '';
+});
+async function preview() {
+  try {
+    prepared.value = await preprocessImage(workflow.fileDataUrl, {
+      crop: crop.value,
+      rotation: rotation.value,
+      contrast: contrast.value
+    });
+  } catch (error) {
+    toast.show(error.message, 'danger');
+  }
+}
 const isImage = computed(() => workflow.file?.type.startsWith('image/'));
 const fileSize = computed(() => `${Math.round((workflow.file?.size || 0) / 1024)} KB`);
 
@@ -107,10 +156,17 @@ async function process() {
   processing.value = true;
   const started = performance.now();
   try {
+    const imageData = isImage.value
+      ? await preprocessImage(workflow.fileDataUrl, {
+          crop: crop.value,
+          rotation: rotation.value,
+          contrast: contrast.value
+        })
+      : workflow.fileDataUrl;
     const result = await viaticosService.extract({
-      fileName: workflow.file.name,
-      fileType: workflow.file.type,
-      fileDataUrl: workflow.fileDataUrl
+      fileName: isImage.value ? `${workflow.file.name}.jpg` : workflow.file.name,
+      fileType: isImage.value ? 'image/jpeg' : workflow.file.type,
+      fileDataUrl: imageData
     });
     workflow.setExtraction(result);
     toast.show(`Datos extraídos en ${((performance.now() - started) / 1000).toFixed(1)} s.`, 'success');

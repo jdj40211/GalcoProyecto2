@@ -94,9 +94,18 @@ async function updateStatus(id, estado) {
   return clone(document);
 }
 
+async function update(id, changes) {
+  if (config.persistence.mode === 'mongo')
+    return Cotizacion.findByIdAndUpdate(id, { $set: changes }, { new: true, runValidators: true }).lean();
+  const document = memory.find((item) => item._id === id);
+  if (!document) return null;
+  Object.assign(document, clone(changes), { updatedAt: new Date().toISOString() });
+  return clone(document);
+}
+
 function resetMemory() {
   memory.length = 0;
   sequences.clear();
 }
 
-module.exports = { nextConsecutive, create, list, getById, updateStatus, resetMemory };
+module.exports = { nextConsecutive, create, list, getById, updateStatus, update, resetMemory };

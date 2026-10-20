@@ -1,5 +1,5 @@
 <template>
-  <RouterView v-if="$route.name === 'login'" />
+  <RouterView v-if="$route.meta.public" />
   <AppShell v-else>
     <RouterView />
   </AppShell>

@@ -6,6 +6,7 @@ const schema = new mongoose.Schema(
   {
     usuario: { type: String, required: true, trim: true },
     usuarioLogin: { type: String, required: true, index: true },
+    solicitudId: { type: String, default: '', index: true },
     fecha: { type: String, required: true, index: true },
     valor: { type: Number, required: true, min: 0 },
     nit: { type: String, default: '' },

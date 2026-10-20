@@ -74,6 +74,18 @@ module.exports = {
     memory[index] = { ...memory[index], ...clone(changes), updatedAt: new Date().toISOString() };
     return clone(memory[index]);
   },
+  async transition(id, expectedState, changes) {
+    if (config.persistence.mode === 'mongo')
+      return Solicitud.findOneAndUpdate(
+        { _id: id, estado: expectedState },
+        { $set: changes },
+        { new: true, runValidators: true }
+      ).then((item) => item?.toJSON() || null);
+    const index = memory.findIndex((item) => item.id === id && item.estado === expectedState);
+    if (index < 0) return null;
+    memory[index] = { ...memory[index], ...clone(changes), updatedAt: new Date().toISOString() };
+    return clone(memory[index]);
+  },
   async remove(id) {
     if (config.persistence.mode === 'mongo') return Boolean(await Solicitud.findByIdAndDelete(id));
     const index = memory.findIndex((item) => item.id === id);

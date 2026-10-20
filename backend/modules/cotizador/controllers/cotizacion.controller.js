@@ -21,6 +21,90 @@ const calculos = require('../services/calculos.service');
 const repository = require('../services/cotizaciones.repository.service');
 const { obtenerParametrosActivos } = require('../services/parametros.service');
 const { obtenerMapaPrecios } = require('../services/materiales.service');
+const mail = require('../services/envio.service');
+const catalog = require('../services/catalogo.service');
+const sendLocks = new Set();
+
+async function editableQuote(request) {
+  const doc = await repository.getById(request.params.id);
+  if (!doc) throw Boom.notFound('Cotización no encontrada.');
+  const credentials = request.auth.credentials;
+  if (doc.metadata.creadoPor !== credentials.uid && !credentials.scope.includes('admin'))
+    throw Boom.forbidden('Solo el autor puede modificar o enviar esta cotización.');
+  if (doc.estado !== 'borrador') throw Boom.conflict('Solo se pueden modificar cotizaciones en borrador.');
+  if (sendLocks.has(request.params.id)) throw Boom.conflict('La cotización tiene un envío en curso.');
+  return doc;
+}
+
+async function duplicateQuote(request, h) {
+  const original = await repository.getById(request.params.id);
+  if (!original) throw Boom.notFound('Cotización no encontrada.');
+  const { _id, createdAt, updatedAt, envio, ...copy } = original;
+  void _id;
+  void createdAt;
+  void updatedAt;
+  void envio;
+  const doc = await repository.create({
+    ...copy,
+    consecutivo: await repository.nextConsecutive(),
+    estado: 'borrador',
+    version: 1,
+    revisiones: [],
+    varianteDe: String(original._id),
+    envio: null,
+    metadata: { ...original.metadata, creadoPor: request.auth.credentials.uid }
+  });
+  return h.response({ ok: true, data: doc }).code(201);
+}
+
+async function editQuote(request) {
+  const original = await editableQuote(request);
+  const { configuracion, metadata } = request.payload;
+  await catalog.assertActive(configuracion);
+  const [params, preciosTubos] = await Promise.all([obtenerParametrosActivos(), obtenerMapaPrecios()]);
+  const result = calculos.calcularCotizacionCompleta(configuracion, { ...params, preciosTubos });
+  const { parametros, ...values } = result;
+  const doc = await repository.update(request.params.id, {
+    ...values,
+    configuracion,
+    metadata: { ...metadata, creadoPor: original.metadata.creadoPor },
+    parametrosAplicados: parametros,
+    revisiones: [
+      ...(original.revisiones || []),
+      {
+        version: original.version || 1,
+        configuracion: original.configuracion,
+        parametrosAplicados: original.parametrosAplicados,
+        precios: original.precios,
+        metadata: original.metadata,
+        fecha: new Date().toISOString()
+      }
+    ],
+    version: (original.version || 1) + 1
+  });
+  return { ok: true, data: doc };
+}
+
+async function sendQuote(request) {
+  const original = await editableQuote(request);
+  if (sendLocks.has(request.params.id)) throw Boom.conflict('La cotización tiene un envío en curso.');
+  if (original.metadata.vigenciaHasta && original.metadata.vigenciaHasta < new Date().toISOString().slice(0, 10))
+    throw Boom.conflict('Actualiza la vigencia antes de enviar.');
+  sendLocks.add(request.params.id);
+  try {
+    const { renderCotizacionPdf } = require('../services/pdf.service');
+    const envio = await mail.send({
+      to: request.payload.destinatario,
+      subject: `Cotización GALCO ${original.consecutivo}`,
+      pdf: await renderCotizacionPdf(original),
+      filename: `${original.consecutivo}.pdf`
+    });
+    const doc = await repository.update(request.params.id, { envio, estado: 'enviada' });
+    return { ok: true, data: doc };
+  } finally {
+    sendLocks.delete(request.params.id);
+  }
+}
 
 // ---------------------------------------------------------------------------
 // POST /cotizador/calculate
@@ -29,6 +113,7 @@ const { obtenerMapaPrecios } = require('../services/materiales.service');
 async function calculateCotizacion(request, h) {
   try {
     const { configuracion } = request.payload;
+    await catalog.assertActive(configuracion);
     const [parametros, preciosTubos] = await Promise.all([obtenerParametrosActivos(), obtenerMapaPrecios()]);
     const resultado = calculos.calcularCotizacionCompleta(configuracion, {
       ...parametros,
@@ -44,6 +129,7 @@ async function calculateCotizacion(request, h) {
       })
       .code(200);
   } catch (err) {
+    if (err.isBoom) throw err;
     request.log(['error', 'cotizador', 'calculate'], err);
     throw Boom.badImplementation('Error calculando cotización', err);
   }
@@ -56,6 +142,7 @@ async function calculateCotizacion(request, h) {
 async function createCotizacion(request, h) {
   try {
     const { configuracion, metadata } = request.payload;
+    await catalog.assertActive(configuracion);
     const uidCreador = request.auth?.credentials?.uid || null;
 
     const [parametros, preciosTubos] = await Promise.all([obtenerParametrosActivos(), obtenerMapaPrecios()]);
@@ -82,6 +169,7 @@ async function createCotizacion(request, h) {
 
     return h.response({ ok: true, data: doc }).code(201);
   } catch (err) {
+    if (err.isBoom) throw err;
     request.log(['error', 'cotizador', 'create'], err);
     if (err.code === 11000) {
       throw Boom.conflict('Consecutivo duplicado, reintentar');
@@ -140,6 +228,14 @@ async function cambiarEstado(request, h) {
   try {
     const { id } = request.params;
     const { estado } = request.payload;
+    const current = await repository.getById(id);
+    if (!current) throw Boom.notFound('Cotización no encontrada');
+    if (sendLocks.has(id)) throw Boom.conflict('Existe un envío en curso.');
+    if (estado === 'enviada') throw Boom.badRequest('Usa el envío confirmado por el proveedor.');
+    if (estado === 'borrador' || ['aprobada', 'rechazada', 'anulada'].includes(current.estado))
+      throw Boom.conflict('No se puede volver a abrir una cotización cerrada.');
+    if (!request.auth.credentials.scope.some((role) => ['admin', 'contabilidad'].includes(role)))
+      throw Boom.forbidden('Solo Contabilidad puede registrar la decisión.');
 
     const doc = await repository.updateStatus(id, estado);
     if (!doc) throw Boom.notFound('Cotización no encontrada');
@@ -221,6 +317,9 @@ async function getCatalogos(_request, h) {
 }
 
 module.exports = {
+  duplicateQuote,
+  editQuote,
+  sendQuote,
   calculateCotizacion,
   createCotizacion,
   getCotizaciones,

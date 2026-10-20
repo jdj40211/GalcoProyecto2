@@ -2,6 +2,32 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
 
 const routes = [
+  {
+    path: '/cotizador/catalogo',
+    component: () => import('@/views/CatalogView.vue'),
+    meta: { roles: ['comercial', 'contabilidad'], title: 'Catálogo de postes' }
+  },
+  { path: '/recuperar', component: () => import('@/views/RecoveryView.vue'), meta: { public: true } },
+  {
+    path: '/usuarios',
+    component: () => import('@/views/UsersView.vue'),
+    meta: { roles: ['admin'], title: 'Administrar usuarios' }
+  },
+  {
+    path: '/cotizador/:id/editar',
+    component: () => import('@/views/QuoteVariantView.vue'),
+    meta: { roles: ['comercial', 'contabilidad'], title: 'Editar variante' }
+  },
+  {
+    path: '/viaticos/legalizacion',
+    component: () => import('@/views/SettlementView.vue'),
+    meta: { roles: ['comercial'], title: 'Legalizar viaje' }
+  },
+  {
+    path: '/notificaciones',
+    component: () => import('@/views/NotificationsView.vue'),
+    meta: { roles: ['comercial', 'contabilidad'], title: 'Notificaciones' }
+  },
   { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue'), meta: { public: true } },
   { path: '/', redirect: '/carga' },
   {
@@ -66,10 +92,11 @@ const router = createRouter({ history: createWebHistory(), routes });
 router.beforeEach(async (to) => {
   const auth = useAuthStore();
   if (!auth.ready) await auth.init();
-  if (to.meta.public) return auth.isAuthenticated ? { name: auth.isAccounting ? 'accounting' : 'upload' } : true;
+  if (auth.isAuthenticated) await auth.getToken();
+  if (to.meta.public) return auth.isAuthenticated ? { path: auth.home } : true;
   if (!auth.isAuthenticated) return { name: 'login', query: { redirect: to.fullPath } };
   if (to.meta.roles && !to.meta.roles.includes(auth.user.rol)) {
-    return { name: auth.isAccounting ? 'accounting' : 'upload' };
+    return { path: auth.home };
   }
   return true;
 });
