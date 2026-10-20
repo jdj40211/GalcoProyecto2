@@ -2,20 +2,9 @@
 
 const Boom = require('@hapi/boom');
 const config = require('../config');
-let admin;
+const firebase = require('../utils/firebase');
 
-function initFirebase() {
-  if (admin) return admin;
-  admin = require('firebase-admin');
-  if (!admin.apps.length) {
-    let credential;
-    if (config.auth.credentialsJson) credential = admin.credential.cert(JSON.parse(config.auth.credentialsJson));
-    else if (config.auth.credentialsPath) credential = admin.credential.cert(require(config.auth.credentialsPath));
-    else credential = admin.credential.applicationDefault();
-    admin.initializeApp({ credential, projectId: config.auth.projectId || undefined });
-  }
-  return admin;
-}
+const ROLES = ['admin', 'comercial', 'contabilidad', 'consulta'];
 
 function devCredentials(request) {
   try {
@@ -52,14 +41,20 @@ module.exports = {
           });
         }
         const header = request.headers.authorization;
-        if (!header?.startsWith('Bearer ')) throw Boom.unauthorized('Token no enviado.', 'Bearer');
+        if (!header?.startsWith('Bearer '))
+          throw Boom.unauthorized('Token no enviado.', ['Bearer error="invalid_request"']);
+        // La cabecera WWW-Authenticate se fija aparte: Boom copiaría el mensaje con tildes y la cabecera solo admite ASCII.
         let decoded;
         try {
-          decoded = await initFirebase().auth().verifyIdToken(header.slice(7).trim(), true);
+          decoded = await firebase.auth().verifyIdToken(header.slice(7).trim(), true);
         } catch {
-          throw Boom.unauthorized('Token inválido o expirado.', 'Bearer');
+          throw Boom.unauthorized('Token inválido o expirado.', ['Bearer error="invalid_token"']);
         }
-        const scope = Array.isArray(decoded.roles) ? decoded.roles : [decoded.role || 'comercial'];
+        // Una cuenta sin rol asignado por el script de usuarios no obtiene acceso.
+        const scope = (Array.isArray(decoded.roles) ? decoded.roles : [decoded.role]).filter((role) =>
+          ROLES.includes(role)
+        );
+        if (!scope.length) throw Boom.forbidden('El usuario no tiene un rol asignado. Contacta al administrador.');
         return h.authenticated({
           credentials: {
             uid: decoded.uid,

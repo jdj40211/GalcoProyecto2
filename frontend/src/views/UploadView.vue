@@ -41,9 +41,7 @@
         :src="prepared || workflow.fileDataUrl"
         alt="Vista previa del comprobante"
       />
-      <div v-else class="pdf-preview">
-        <i class="fas fa-file-pdf"></i><span>{{ workflow.file.name }}</span>
-      </div>
+      <PdfPreview v-else :data-url="workflow.fileDataUrl" :file-name="workflow.file.name" />
       <div class="file-meta">
         <i class="fas fa-paperclip"></i><strong>{{ workflow.file.name }}</strong
         ><span>{{ fileSize }}</span>
@@ -81,7 +79,8 @@ import { computed, ref, watch } from 'vue';
 import { preprocessImage } from '@/services/image-preprocess';
 import { useRouter } from 'vue-router';
 import { fileRules } from '@/config/domain';
-import { fileToDataUrl } from '@/services/format';
+import PdfPreview from '@/components/PdfPreview.vue';
+import { prepareReceiptFile } from '@/services/format';
 import { viaticosService } from '@/services/viaticos.service';
 import { useWorkflowStore } from '@/stores/workflow.store';
 import { useToastStore } from '@/stores/toast.store';
@@ -136,7 +135,6 @@ function onDrop(event) {
 }
 function validate(file) {
   if (!file || file.size === 0) return 'El archivo está vacío.';
-  if (file.size > fileRules.maxBytes) return 'El archivo supera el tamaño máximo de 10 MB.';
   const extension = file.name.split('.').pop()?.toLowerCase() || '';
   if (!fileRules.mimeTypes.includes(file.type) || !fileRules.extensions.includes(extension))
     return 'Formato no permitido. Usa JPG, JPEG, PNG o PDF.';
@@ -146,7 +144,11 @@ async function selectFile(file) {
   const error = validate(file);
   if (error) return toast.show(error, 'danger');
   try {
-    workflow.setFile(file, await fileToDataUrl(file));
+    // Las fotos se comprimen antes de validar el tamaño, así una foto de celular grande sigue siendo aceptada.
+    const prepared = await prepareReceiptFile(file);
+    if (prepared.file.size > fileRules.maxBytes)
+      return toast.show('El archivo supera el tamaño máximo de 10 MB.', 'danger');
+    workflow.setFile(prepared.file, prepared.dataUrl);
     toast.show('Archivo cargado correctamente.', 'success');
   } catch (err) {
     toast.show(err?.message || 'No fue posible leer el archivo.', 'danger');

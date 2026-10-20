@@ -9,7 +9,7 @@
     <header class="module-heading">
       <div>
         <div class="eyebrow">GALCO · Cotizador</div>
-        <h2>Historial</h2>
+        <h2>{{ auth.isCommercial ? 'Mis cotizaciones' : 'Historial' }}</h2>
       </div>
       <div class="head-actions">
         <router-link to="/cotizador" class="btn btn-ghost">
@@ -25,7 +25,7 @@
           <label for="quote-filter-client">Cliente</label>
           <input id="quote-filter-client" v-model="filtros.cliente" @keyup.enter="buscar" placeholder="Nombre…" />
         </div>
-        <div>
+        <div v-if="!auth.isCommercial">
           <label for="quote-filter-seller">Vendedor</label>
           <input id="quote-filter-seller" v-model="filtros.vendedor" @keyup.enter="buscar" placeholder="Nombre…" />
         </div>
@@ -61,7 +61,7 @@
               <th>Consecutivo</th>
               <th>Fecha</th>
               <th>Cliente</th>
-              <th>Vendedor</th>
+              <th v-if="!auth.isCommercial">Vendedor</th>
               <th>Tipo</th>
               <th class="num">Cant</th>
               <th class="num">Precio final</th>
@@ -71,16 +71,16 @@
           </thead>
           <tbody>
             <tr v-if="store.cargandoLista">
-              <td colspan="9" class="text-mute">Cargando…</td>
+              <td :colspan="columnas" class="text-mute">Cargando…</td>
             </tr>
             <tr v-else-if="!store.lista.length">
-              <td colspan="9" class="text-mute">Sin resultados</td>
+              <td :colspan="columnas" class="text-mute">Sin resultados</td>
             </tr>
             <tr v-for="c in store.lista" :key="c._id">
               <td class="font-mono">{{ c.consecutivo }}</td>
               <td>{{ dateShort(c.createdAt) }}</td>
               <td>{{ c.metadata.cliente }}</td>
-              <td>{{ c.metadata.vendedor }}</td>
+              <td v-if="!auth.isCommercial">{{ c.metadata.vendedor || 'Sin asignar' }}</td>
               <td>{{ c.configuracion.tipoPoste }}</td>
               <td class="num">{{ c.configuracion.cantidad }}</td>
               <td class="num">{{ money(c.precios.precioFinal) }}</td>
@@ -141,10 +141,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { computed, ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import BaseModal from '@/components/BaseModal.vue';
 import http from '@/services/http';
+import { useAuthStore } from '@/stores/auth.store';
 import { useCotizadorStore } from '@/stores/cotizador.store';
 import { useToastStore } from '@/stores/toast.store';
 import cotizadorApi from '@/services/cotizador.service';
@@ -180,6 +181,9 @@ async function send() {
     busy.value = false;
   }
 }
+// Cada comercial ve solo sus cotizaciones; el filtro y la columna de vendedor son para contabilidad.
+const auth = useAuthStore();
+const columnas = computed(() => (auth.isCommercial ? 8 : 9));
 
 const filtros = reactive({
   cliente: '',

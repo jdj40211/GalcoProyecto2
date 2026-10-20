@@ -13,9 +13,7 @@
     <div v-else class="validation-layout">
       <div class="receipt-preview">
         <img v-if="workflow.file.type.startsWith('image/')" :src="workflow.fileDataUrl" alt="Comprobante procesado" />
-        <div v-else class="pdf-preview">
-          <i class="fas fa-file-pdf"></i><span>{{ workflow.file.name }}</span>
-        </div>
+        <PdfPreview v-else :data-url="workflow.fileDataUrl" :file-name="workflow.file.name" />
       </div>
       <form class="validation-form" @submit.prevent="submit">
         <div
@@ -182,6 +180,7 @@ import { solicitudesService } from '@/services/solicitudes.service';
 import { useRouter } from 'vue-router';
 import EmptyState from '@/components/EmptyState.vue';
 import FieldBadge from '@/components/FieldBadge.vue';
+import PdfPreview from '@/components/PdfPreview.vue';
 import { expenseTypes } from '@/config/domain';
 import { useWorkflowStore } from '@/stores/workflow.store';
 import { useViaticosStore } from '@/stores/viaticos.store';

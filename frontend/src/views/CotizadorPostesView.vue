@@ -90,7 +90,13 @@
         <div class="grid-2 mt-3">
           <div>
             <label for="quote-seller">Vendedor</label>
-            <input id="quote-seller" type="text" v-model.trim="meta.vendedor" placeholder="Nombre" />
+            <input
+              id="quote-seller"
+              type="text"
+              :value="meta.vendedor"
+              readonly
+              title="La cotización queda a nombre del usuario que inició sesión"
+            />
           </div>
           <div>
             <label for="quote-client">Cliente</label>
@@ -339,9 +345,7 @@ const puedeCalcular = computed(() => {
   return true;
 });
 
-const puedeGuardar = computed(
-  () => puedeCalcular.value && meta.value.cliente && meta.value.vendedor && meta.value.vigenciaHasta >= today
-);
+const puedeGuardar = computed(() => puedeCalcular.value && meta.value.cliente && meta.value.vigenciaHasta >= today);
 
 // Recalcular en vivo cuando cambian los inputs (opcional - con debounce simple)
 let recalcTimer = null;

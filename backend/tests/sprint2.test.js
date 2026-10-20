@@ -264,3 +264,19 @@ test('HU-02 una sesión vencida pierde acceso aunque el token sea válido', (con
     (error) => error.output.statusCode === 401
   );
 });
+test('HU-09 preserva aislamiento por vendedor al duplicar y editar', async () => {
+  const original = await quote();
+  assert.equal(
+    (await call('POST', `/api/cotizador/${original._id}/duplicar`, undefined, headers('comercial', 'lgomez')))
+      .statusCode,
+    404
+  );
+  const copied = (await call('POST', `/api/cotizador/${original._id}/duplicar`)).result.data;
+  await call('PUT', `/api/cotizador/${copied._id}`, {
+    ...input,
+    metadata: { ...input.metadata, vendedor: 'Otro vendedor' }
+  });
+  const edited = (await call('GET', `/api/cotizador/${copied._id}`)).result.data;
+  assert.equal(edited.metadata.vendedorLogin, 'jdiaz');
+  assert.equal(edited.metadata.vendedor, original.metadata.vendedor);
+});

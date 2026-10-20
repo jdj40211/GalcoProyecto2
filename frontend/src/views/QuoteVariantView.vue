@@ -11,7 +11,7 @@
       </div>
       <div class="form-group">
         <label for="variant-seller">Vendedor</label
-        ><input id="variant-seller" v-model="quote.metadata.vendedor" required />
+        ><input id="variant-seller" :value="quote.metadata.vendedor" readonly />
       </div>
       <div class="form-group">
         <label for="variant-type">Tipo de poste</label>
@@ -92,8 +92,8 @@ async function save() {
   error.value = '';
   message.value = '';
   try {
-    const { creadoPor, ...metadata } = quote.value.metadata;
-    void creadoPor;
+    const { cliente, observaciones, vigenciaHasta } = quote.value.metadata;
+    const metadata = { cliente, observaciones, vigenciaHasta };
     quote.value = (
       await http.put(`/cotizador/${route.params.id}`, { configuracion: quote.value.configuracion, metadata })
     ).data.data;

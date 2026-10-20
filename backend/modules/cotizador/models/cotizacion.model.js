@@ -111,6 +111,8 @@ const metadataSchema = new Schema(
     cliente: { type: String, required: true, trim: true },
     vendedor: { type: String, required: true, trim: true },
     vigenciaHasta: { type: String, default: '' },
+    // Usuario de inicio de sesión del vendedor: define quién puede ver la cotización.
+    vendedorLogin: { type: String, index: true },
     // `creadoPor` es el UID de Firebase — no necesariamente == vendedor
     creadoPor: { type: String, index: true },
     observaciones: { type: String, default: '' }

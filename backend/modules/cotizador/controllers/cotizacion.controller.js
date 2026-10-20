@@ -37,8 +37,7 @@ async function editableQuote(request) {
 }
 
 async function duplicateQuote(request, h) {
-  const original = await repository.getById(request.params.id);
-  if (!original) throw Boom.notFound('Cotización no encontrada.');
+  const original = await findAccessible(request);
   const { _id, createdAt, updatedAt, envio, ...copy } = original;
   void _id;
   void createdAt;
@@ -52,7 +51,12 @@ async function duplicateQuote(request, h) {
     revisiones: [],
     varianteDe: String(original._id),
     envio: null,
-    metadata: { ...original.metadata, creadoPor: request.auth.credentials.uid }
+    metadata: {
+      ...original.metadata,
+      creadoPor: request.auth.credentials.uid,
+      vendedor: request.auth.credentials.name,
+      vendedorLogin: request.auth.credentials.usuario
+    }
   });
   return h.response({ ok: true, data: doc }).code(201);
 }
@@ -67,7 +71,12 @@ async function editQuote(request) {
   const doc = await repository.update(request.params.id, {
     ...values,
     configuracion,
-    metadata: { ...metadata, creadoPor: original.metadata.creadoPor },
+    metadata: {
+      ...metadata,
+      creadoPor: original.metadata.creadoPor,
+      vendedor: original.metadata.vendedor,
+      vendedorLogin: original.metadata.vendedorLogin
+    },
     parametrosAplicados: parametros,
     revisiones: [
       ...(original.revisiones || []),
@@ -104,6 +113,18 @@ async function sendQuote(request) {
   } finally {
     sendLocks.delete(request.params.id);
   }
+}
+
+// Los comerciales solo acceden a sus propias cotizaciones; los demás roles ven todas.
+const seesAll = (credentials) =>
+  ['admin', 'contabilidad', 'consulta'].some((role) => credentials?.scope?.includes(role));
+const canAccess = (credentials, doc) => seesAll(credentials) || doc.metadata?.vendedorLogin === credentials?.usuario;
+
+async function findAccessible(request) {
+  const doc = await repository.getById(request.params.id);
+  // Una cotización ajena responde igual que una inexistente para no revelar que existe.
+  if (!doc || !canAccess(request.auth.credentials, doc)) throw Boom.notFound('Cotización no encontrada');
+  return doc;
 }
 
 // ---------------------------------------------------------------------------
@@ -143,7 +164,7 @@ async function createCotizacion(request, h) {
   try {
     const { configuracion, metadata } = request.payload;
     await catalog.assertActive(configuracion);
-    const uidCreador = request.auth?.credentials?.uid || null;
+    const credentials = request.auth.credentials;
 
     const [parametros, preciosTubos] = await Promise.all([obtenerParametrosActivos(), obtenerMapaPrecios()]);
     const resultado = calculos.calcularCotizacionCompleta(configuracion, {
@@ -161,8 +182,12 @@ async function createCotizacion(request, h) {
       precios: resultado.precios,
       parametrosAplicados: resultado.parametros,
       metadata: {
-        ...metadata,
-        creadoPor: uidCreador
+        cliente: metadata.cliente,
+        observaciones: metadata.observaciones || '',
+        vigenciaHasta: metadata.vigenciaHasta || '',
+        vendedor: credentials.name,
+        vendedorLogin: credentials.usuario,
+        creadoPor: credentials.uid || null
       },
       estado: 'borrador'
     });
@@ -185,7 +210,19 @@ async function getCotizaciones(request, h) {
   try {
     const { page, limit, cliente, vendedor, estado, desde, hasta } = request.query;
 
-    const { items, total } = await repository.list({ page, limit, cliente, vendedor, estado, desde, hasta });
+    const credentials = request.auth.credentials;
+    const vendedorLogin = seesAll(credentials) ? undefined : credentials.usuario;
+
+    const { items, total } = await repository.list({
+      page,
+      limit,
+      cliente,
+      vendedor,
+      vendedorLogin,
+      estado,
+      desde,
+      hasta
+    });
 
     return h
       .response({
@@ -210,9 +247,7 @@ async function getCotizaciones(request, h) {
 // ---------------------------------------------------------------------------
 async function getCotizacionById(request, h) {
   try {
-    const { id } = request.params;
-    const doc = await repository.getById(id);
-    if (!doc) throw Boom.notFound('Cotización no encontrada');
+    const doc = await findAccessible(request);
     return h.response({ ok: true, data: doc }).code(200);
   } catch (err) {
     if (err.isBoom) throw err;
@@ -228,8 +263,7 @@ async function cambiarEstado(request, h) {
   try {
     const { id } = request.params;
     const { estado } = request.payload;
-    const current = await repository.getById(id);
-    if (!current) throw Boom.notFound('Cotización no encontrada');
+    const current = await findAccessible(request);
     if (sendLocks.has(id)) throw Boom.conflict('Existe un envío en curso.');
     if (estado === 'enviada') throw Boom.badRequest('Usa el envío confirmado por el proveedor.');
     if (estado === 'borrador' || ['aprobada', 'rechazada', 'anulada'].includes(current.estado))
@@ -237,6 +271,7 @@ async function cambiarEstado(request, h) {
     if (!request.auth.credentials.scope.some((role) => ['admin', 'contabilidad'].includes(role)))
       throw Boom.forbidden('Solo Contabilidad puede registrar la decisión.');
 
+    await findAccessible(request);
     const doc = await repository.updateStatus(id, estado);
     if (!doc) throw Boom.notFound('Cotización no encontrada');
     return h.response({ ok: true, data: doc }).code(200);
@@ -252,9 +287,7 @@ async function cambiarEstado(request, h) {
 // ---------------------------------------------------------------------------
 async function generarPdfCotizacion(request, h) {
   try {
-    const { id } = request.params;
-    const doc = await repository.getById(id);
-    if (!doc) throw Boom.notFound('Cotización no encontrada');
+    const doc = await findAccessible(request);
 
     // Carga diferida del servicio PDF — es pesado (Chromium)
     const { renderCotizacionPdf } = require('../services/pdf.service');

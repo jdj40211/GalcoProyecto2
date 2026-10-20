@@ -31,9 +31,7 @@ function seed() {
   }
 }
 function firebase() {
-  const admin = require('firebase-admin');
-  if (!admin.apps.length) throw Boom.serverUnavailable('Firebase Admin no está inicializado.');
-  return admin.auth();
+  return require('../utils/firebase').auth();
 }
 function fromFirebase(user) {
   return {

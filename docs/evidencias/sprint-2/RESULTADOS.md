@@ -1,7 +1,11 @@
 # Sprint 2 — Registro de verificación
 
 Fecha: 20 de octubre de 2026. Rama: `codex/sprint-2-mvp`.
-Base integrada desde `origin/main`: `c9e5c38`.
+Base integrada desde `origin/main`: `f4d6da6`.
+
+Resultado automatizado final: 69 pruebas aprobadas (62 backend y 7 frontend),
+dos recorridos E2E aprobados, compilación correcta, formato y análisis estático
+sin errores, y cero vulnerabilidades de severidad alta o crítica en producción.
 
 ## Entorno y alcance
 
