@@ -12,6 +12,10 @@
         <h2>{{ auth.isCommercial ? 'Mis cotizaciones' : 'Historial' }}</h2>
       </div>
       <div class="head-actions">
+        <router-link to="/cotizador/indicadores" class="btn btn-ghost">
+          <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+          Indicadores
+        </router-link>
         <router-link to="/cotizador" class="btn btn-ghost">
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
           Volver al cotizador
@@ -85,7 +89,22 @@
               <td class="num">{{ c.configuracion.cantidad }}</td>
               <td class="num">{{ money(c.precios.precioFinal) }}</td>
               <td>
-                <span class="badge" :class="estadoBadgeClass(c.estado)">{{ c.estado }}</span>
+                <div class="estado-cell">
+                  <span class="badge" :class="estadoBadgeClass(c.estado)">{{ quoteStates[c.estado] || c.estado }}</span>
+                  <select
+                    v-if="canDecide && quoteTransitions[c.estado]?.length"
+                    :id="`estado-${c._id}`"
+                    class="estado-select"
+                    :aria-label="`Cambiar el estado de ${c.consecutivo}`"
+                    value=""
+                    @change="pedirCambio(c, $event)"
+                  >
+                    <option value="" disabled>Cambiar a…</option>
+                    <option v-for="next in quoteTransitions[c.estado]" :key="next" :value="next">
+                      {{ quoteStates[next] }}
+                    </option>
+                  </select>
+                </div>
               </td>
               <td>
                 <button class="btn btn-ghost btn-xs" @click="descargar(c)" aria-label="Descargar cotización en PDF">
@@ -133,6 +152,26 @@
         </button>
       </div>
     </section>
+
+    <BaseModal :open="Boolean(cambio)" title="Cambiar estado" @close="cambio = null">
+      <template v-if="cambio">
+        <p>
+          ¿Marcar <strong>{{ cambio.cotizacion.consecutivo }}</strong> ({{ cambio.cotizacion.metadata.cliente }}) como
+          <strong>{{ quoteStates[cambio.estado] }}</strong
+          >?
+        </p>
+        <p v-if="!quoteTransitions[cambio.estado].length" class="text-mute">
+          Es un estado final: después no se podrá cambiar.
+        </p>
+        <div class="button-row modal-actions">
+          <button class="btn btn-primary" :disabled="guardandoEstado" @click="confirmarCambio">
+            <span v-if="guardandoEstado" class="spinner"></span>Confirmar
+          </button>
+          <button class="btn btn-outline" type="button" @click="cambio = null">Cancelar</button>
+        </div>
+      </template>
+    </BaseModal>
+
     <BaseModal :open="Boolean(sending)" title="Enviar cotización" @close="sending = null">
       <form @submit.prevent="send">
         <label for="quote-recipient">Correo del cliente</label>
@@ -154,6 +193,7 @@ import { useCotizadorStore } from '@/stores/cotizador.store';
 import { useToastStore } from '@/stores/toast.store';
 import cotizadorApi from '@/services/cotizador.service';
 import { money, dateShort, estadoBadgeClass } from '@/services/format';
+import { quoteStates, quoteTransitions } from '@/config/domain';
 
 const store = useCotizadorStore();
 const toast = useToastStore();
@@ -197,6 +237,30 @@ const filtros = reactive({
 });
 
 const page = ref(1);
+
+// El cambio de estado se confirma antes de enviarlo: los estados finales no tienen vuelta atrás.
+const cambio = ref(null);
+// Registrar la decisión del cliente es tarea de Contabilidad (regla de main, HU-10).
+const canDecide = computed(() => ['admin', 'contabilidad'].includes(auth.user?.rol));
+const guardandoEstado = ref(false);
+function pedirCambio(cotizacion, event) {
+  cambio.value = { cotizacion, estado: event.target.value };
+  event.target.value = '';
+}
+async function confirmarCambio() {
+  guardandoEstado.value = true;
+  try {
+    const { cotizacion, estado } = cambio.value;
+    const actualizada = await cotizadorApi.cambiarEstado(cotizacion._id, estado);
+    Object.assign(cotizacion, actualizada);
+    toast.show(`${cotizacion.consecutivo} quedó ${quoteStates[estado].toLowerCase()}.`, 'success');
+    cambio.value = null;
+  } catch (error) {
+    toast.show(error.message, 'danger');
+  } finally {
+    guardandoEstado.value = false;
+  }
+}
 
 function params() {
   const p = { page: page.value, limit: 20 };
@@ -260,6 +324,11 @@ onMounted(() => store.cargarLista(params()));
 }
 .module-heading .eyebrow {
   margin-bottom: 2px;
+}
+.head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .filters {

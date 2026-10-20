@@ -33,6 +33,11 @@ export default {
     return data.data;
   },
 
+  async indicadores(params = {}) {
+    const { data } = await http.get('/cotizador/indicadores', { params });
+    return data.data;
+  },
+
   async cambiarEstado(id, estado) {
     const { data } = await http.patch(`/cotizador/${id}/estado`, { estado });
     return data.data;

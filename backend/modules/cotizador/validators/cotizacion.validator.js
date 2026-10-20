@@ -98,6 +98,12 @@ const listQuery = Joi.object({
   hasta: Joi.date().iso().optional()
 });
 
+// GET /cotizador/indicadores  -> rango de días, ambos incluidos
+const day = Joi.string()
+  .pattern(/^\d{4}-\d{2}-\d{2}$/)
+  .messages({ 'string.pattern.base': 'La fecha debe tener el formato AAAA-MM-DD' });
+const indicadoresQuery = Joi.object({ desde: day.optional(), hasta: day.optional() });
+
 // GET /cotizador/{id}
 const idParams = Joi.object({
   id: Joi.string().hex().length(24).required().messages({ 'string.length': 'id debe ser un ObjectId válido (24 hex)' })
@@ -109,5 +115,6 @@ module.exports = {
   calculatePayload,
   createPayload,
   listQuery,
+  indicadoresQuery,
   idParams
 };

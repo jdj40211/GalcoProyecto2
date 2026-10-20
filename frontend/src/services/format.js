@@ -45,3 +45,12 @@ export function fileToDataUrl(file) {
     reader.readAsDataURL(file);
   });
 }
+
+// Duración legible a partir de horas: minutos, horas o días.
+export function formatDuration(hours) {
+  if (hours == null) return '—';
+  const number = (value) => value.toLocaleString('es-CO', { maximumFractionDigits: 1 });
+  if (hours < 1) return `${Math.max(1, Math.round(hours * 60))} min`;
+  if (hours < 48) return `${number(hours)} h`;
+  return `${number(hours / 24)} días`;
+}

@@ -16,18 +16,19 @@
 
 ## Pares de pruebas por funcionalidad
 
-| HU    | Caso exitoso                                            | Caso alternativo                                                                         | Archivo                                                   |
-| ----- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| HU-02 | Inactividad cierra la sesión; la actividad la renueva   | Detener la vigilancia; sesión vencida al reabrir                                         | `frontend/src/services/session.test.js`                   |
-| HU-04 | Solicitud de recuperación con mensaje genérico          | Dato vacío, demasiadas solicitudes, modo de prueba sin envío                             | `frontend/src/services/password-reset.test.js`            |
-| HU-05 | Crear cuenta y gestionar estado                         | Comercial sin permiso, correo duplicado, autodesactivación                               | `backend/tests/sprint2.test.js`                           |
-| HU-06 | Buscar configuración por código ignorando mayúsculas    | Sin resultados / configuración inactiva / rol no autorizado                              | Mismo archivo                                             |
-| HU-09 | Duplicar y editar sin alterar original                  | Cantidad cero, autor distinto, estado enviada                                            | Mismo archivo                                             |
-| HU-10 | Proveedor confirma envío                                | Proveedor falla / correo inválido; conserva borrador                                     | Mismo archivo                                             |
-| HU-23 | Aprobar solicitud enviada                               | Rol inválido / edición tras envío                                                        | `backend/tests/solicitudes.test.js`                       |
-| HU-24 | Aviso por aprobación y lectura                          | Notificación ajena no visible ni modificable                                             | `backend/tests/sprint2.test.js`                           |
-| HU-25 | Asociar soporte y preparar imagen (automático y manual) | Solicitud ajena/no aprobada; fondo con textura no se recorta; recorte/rotación inválidos | API Sprint 2, `receipt-image.test.js` y `sprint2.test.js` |
-| HU-26 | Cierre con gasto real y saldo                           | Duplicados, soporte ajeno/no aprobado, doble cierre                                      | API Sprint 2                                              |
+| HU    | Caso exitoso                                                               | Caso alternativo                                                                                  | Archivo                                                   |
+| ----- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| HU-02 | Inactividad cierra la sesión; la actividad la renueva                      | Detener la vigilancia; sesión vencida al reabrir                                                  | `frontend/src/services/session.test.js`                   |
+| HU-04 | Solicitud de recuperación con mensaje genérico                             | Dato vacío, demasiadas solicitudes, modo de prueba sin envío                                      | `frontend/src/services/password-reset.test.js`            |
+| HU-05 | Crear cuenta y gestionar estado                                            | Comercial sin permiso, correo duplicado, autodesactivación                                        | `backend/tests/sprint2.test.js`                           |
+| HU-06 | Buscar configuración por código ignorando mayúsculas                       | Sin resultados / configuración inactiva / rol no autorizado                                       | Mismo archivo                                             |
+| HU-09 | Duplicar y editar sin alterar original                                     | Cantidad cero, autor distinto, estado enviada                                                     | Mismo archivo                                             |
+| HU-10 | Proveedor confirma envío                                                   | Proveedor falla / correo inválido; conserva borrador                                              | Mismo archivo                                             |
+| HU-12 | Indicadores con fechas controladas; envío y aprobación registran historial | Período vacío, fecha inválida (400), variante sin historial heredado, comercial sin decidir (403) | `backend/tests/indicadores.test.js`                       |
+| HU-23 | Aprobar solicitud enviada                                                  | Rol inválido / edición tras envío                                                                 | `backend/tests/solicitudes.test.js`                       |
+| HU-24 | Aviso por aprobación y lectura                                             | Notificación ajena no visible ni modificable                                                      | `backend/tests/sprint2.test.js`                           |
+| HU-25 | Asociar soporte y preparar imagen (automático y manual)                    | Solicitud ajena/no aprobada; fondo con textura no se recorta; recorte/rotación inválidos          | API Sprint 2, `receipt-image.test.js` y `sprint2.test.js` |
+| HU-26 | Cierre con gasto real y saldo                                              | Duplicados, soporte ajeno/no aprobado, doble cierre                                               | API Sprint 2                                              |
 
 La matriz usa los criterios `S2-*` del [alcance](22-Sprint-2-Alcance-y-trazabilidad). Los criterios originales no cubiertos siguen como deuda; dos pruebas no equivalen a aceptación completa de una HU parcial.
 

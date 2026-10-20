@@ -61,7 +61,8 @@ const navigation = computed(() =>
         { section: 'COTIZADOR' },
         { to: '/cotizador/catalogo', label: 'Catálogo de postes', icon: 'fa-list' },
         { to: '/cotizador', label: 'Nueva cotización', icon: 'fa-calculator' },
-        { to: '/cotizador/historial', label: 'Historial de cotizaciones', icon: 'fa-clock-rotate-left' }
+        { to: '/cotizador/historial', label: 'Historial de cotizaciones', icon: 'fa-clock-rotate-left' },
+        { to: '/cotizador/indicadores', label: 'Indicadores', icon: 'fa-chart-line' }
       ]
 );
 const roleName = computed(() =>

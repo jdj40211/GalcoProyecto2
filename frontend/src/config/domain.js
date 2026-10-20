@@ -26,6 +26,23 @@ export const statuses = {
   error: { label: 'Con error', tone: 'warning', icon: 'fa-triangle-exclamation' }
 };
 
+// Estados de una cotización. Las decisiones que Contabilidad registra a mano desde el historial;
+// "Enviada" solo la marca el envío por correo confirmado. El backend valida las mismas reglas.
+export const quoteStates = {
+  borrador: 'Borrador',
+  enviada: 'Enviada',
+  aprobada: 'Aprobada',
+  rechazada: 'Rechazada',
+  anulada: 'Anulada'
+};
+export const quoteTransitions = {
+  borrador: ['aprobada', 'rechazada', 'anulada'],
+  enviada: ['aprobada', 'rechazada', 'anulada'],
+  aprobada: [],
+  rechazada: [],
+  anulada: []
+};
+
 export const fileRules = {
   maxBytes: 10 * 1024 * 1024,
   mimeTypes: ['image/jpeg', 'image/png', 'application/pdf'],
