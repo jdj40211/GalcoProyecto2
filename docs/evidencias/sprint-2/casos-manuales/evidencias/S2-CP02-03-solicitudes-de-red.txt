@@ -1,0 +1,20 @@
+[
+  {
+    "entrada": "correo-invalido@@",
+    "mensaje": "La recuperación de contraseña no está disponible en el modo de prueba.",
+    "validacionNavegador": "",
+    "solicitudesExternas": []
+  },
+  {
+    "entrada": "jdiaz@galco.com.co",
+    "mensaje": "La recuperación de contraseña no está disponible en el modo de prueba.",
+    "validacionNavegador": "",
+    "solicitudesExternas": []
+  },
+  {
+    "entrada": "   ",
+    "mensaje": "La recuperación de contraseña no está disponible en el modo de prueba.",
+    "validacionNavegador": "Completa este campo",
+    "solicitudesExternas": []
+  }
+]
