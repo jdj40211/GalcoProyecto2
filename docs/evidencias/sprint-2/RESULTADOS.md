@@ -1,9 +1,9 @@
 # Sprint 2 — Registro de verificación
 
-Fecha: 20 de octubre de 2026. Rama: `codex/sprint-2-mvp`.
-Base integrada desde `origin/main`: `f4d6da6`.
+Fecha: 20 de octubre de 2026. Versión: `main` en `dba0fb4`.
+Integración: PR #59 (Sprint 2) y PR #60 (HU-12).
 
-Resultado automatizado final: 69 pruebas aprobadas (62 backend y 7 frontend),
+Resultado automatizado final: 92 pruebas aprobadas (67 backend y 25 frontend),
 dos recorridos E2E aprobados, compilación correcta, formato y análisis estático
 sin errores, y cero vulnerabilidades de severidad alta o crítica en producción.
 
@@ -49,7 +49,10 @@ horizontal. Estas evidencias automáticas no sustituyen pruebas de usabilidad co
 
 - Validación con MongoDB, Firebase, proveedor OCR y correo reales.
 - Prueba manual final en el entorno de entrega, incluido ratón/teclado y permisos reales.
-- Revisión por pares, CI del PR y aceptación por historia del Product Owner.
+- Aceptación por historia del Product Owner y evidencia de la Review.
 - Evidencias auténticas de ceremonias y ratificación de cifras del caso de negocio.
 
-Los casos manuales y las ceremonias permanecen pendientes; no se presentan como ejecutados.
+La ejecución técnica por caso está registrada en la página 26 de la wiki. Los pasos que
+requieren proveedor real o interacción humana permanecen pendientes y no se presentan
+como ejecutados. El CI de `main` quedó verde en la ejecución
+[39505432051](https://github.com/jdj40211/GalcoProyecto2/actions/runs/39505432051).

@@ -6,7 +6,8 @@ Evolucionar el MVP de Cotizador + Viáticos desde la creación de registros haci
 
 El usuario confirmó mantener **Cotizador + Viáticos** en esta entrega. Hojas de vida (HU-13 a HU-19) queda fuera de esta implementación. Esta decisión de trabajo no se presenta como un acta de aceptación del Product Owner.
 
-Base: `main` en `c9e5c38` (Sprint 1). Rama de desarrollo: `codex/sprint-2-mvp`.
+Base inicial: `main` en `c9e5c38` (Sprint 1). Versión integrada de entrega:
+`main` en `dba0fb4`, mediante PR #59 y PR #60 el 20 de octubre de 2026.
 
 ## Alcance implementado y límites
 
@@ -29,6 +30,9 @@ Integración con `main` (PR de integración): HU-02, HU-04 y HU-25 también se h
 Los identificadores `S2-*` son criterios del incremento propuestos durante refinamiento. **No reemplazan ni renumeran los CA originales** de las issues. En particular, HU-06 y HU-25 no se declaran completas mientras sus criterios originales pendientes sigan abiertos.
 
 ## Cierre del backlog
+
+La auditoría del estado real, las inconsistencias y el cierre técnico está en
+[`docs/evidencias/sprint-2/BACKLOG-Y-CIERRE.md`](../evidencias/sprint-2/BACKLOG-Y-CIERRE.md).
 
 1. Revisar criterios con el equipo y PO.
 2. Enlazar PR, pruebas y capturas en cada issue.

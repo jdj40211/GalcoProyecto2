@@ -103,4 +103,7 @@ La documentación completa está en [`docs/wiki/`](docs/wiki) y puede sincroniza
 
 ## Estado honesto de cierre
 
-El incremento de Sprint 2 se prepara en la rama `codex/sprint-2-mvp`. Para declarar el Sprint cerrado aún se requieren evidencia real de ceremonias, ejecución manual final, aceptación del Product Owner, revisión de un compañero y CI verde en GitHub. Las integraciones externas requieren configuración y validación con las cuentas del proyecto.
+El incremento técnico de Sprint 2 está integrado en `main` mediante los PR #59 y #60, con
+CI y CodeQL verdes. Para declarar el Sprint administrativamente cerrado aún se requieren
+evidencia real de ceremonias, ejecución manual final y aceptación del Product Owner. Las
+integraciones externas requieren configuración y validación con las cuentas del proyecto.

@@ -1,14 +1,17 @@
 # Sprint 2 — Ceremonias y cierre
 
-No se encontraron evidencias publicadas de ceremonias de Sprint 2 al iniciar este trabajo. Esta página organiza lo que debe aportar el equipo; **no acredita reuniones realizadas**.
+No se encontraron evidencias publicadas de ceremonias de Sprint 2 al iniciar este trabajo.
+Se creó un [expediente editable](../ceremonias/sprint-2/README.md) con información verificable,
+borradores para ratificación y campos pendientes. **El expediente no acredita reuniones no
+documentadas.**
 
-| Ceremonia     | Registro necesario                                                   | Evidencia                           | Estado    |
-| ------------- | -------------------------------------------------------------------- | ----------------------------------- | --------- |
-| Planning      | Fecha, asistentes, objetivo, capacidad, historias y alcance acordado | Acta y enlace autorizado            | Pendiente |
-| Dailies       | Fecha, avance, siguiente paso e impedimentos                         | Notas/capturas reales               | Pendiente |
-| Refinamiento  | Criterios S2 ratificados, estimaciones y dependencias                | Acta                                | Pendiente |
-| Review        | Versión, demo, feedback, aceptación por historia                     | Acta y captura/grabación autorizada | Pendiente |
-| Retrospectiva | Qué mantener/cambiar, acción, responsable, plazo                     | Acta                                | Pendiente |
+| Ceremonia     | Registro necesario                                                   | Evidencia                                   | Estado              |
+| ------------- | -------------------------------------------------------------------- | ------------------------------------------- | ------------------- |
+| Planning      | Objetivo, alcance y dependencias reconstruidos; faltan datos humanos | `docs/ceremonias/sprint-2/planning.md`      | Borrador            |
+| Dailies       | Cronología Git separada de las reuniones reales                      | `docs/ceremonias/sprint-2/dailies.md`       | Parcial             |
+| Refinamiento  | Criterios y decisiones por ratificar                                 | `docs/ceremonias/sprint-2/refinamiento.md`  | Borrador            |
+| Review        | Guion y tabla de decisión por historia                               | `docs/ceremonias/sprint-2/review.md`        | Lista para realizar |
+| Retrospectiva | Hallazgos verificables y acciones propuestas                         | `docs/ceremonias/sprint-2/retrospectiva.md` | Lista para realizar |
 
 ## Plantilla para cada reunión real
 
@@ -26,11 +29,13 @@ No se encontraron evidencias publicadas de ceremonias de Sprint 2 al iniciar est
 - [ ] Integraciones reales configuradas o limitaciones aceptadas explícitamente.
 - [ ] Finanzas y riesgos revisados; supuestos y RACI ratificados.
 - [ ] Protocolo de usabilidad publicado, ejecución reservada para Sprint 3.
-- [ ] Pruebas automáticas ejecutadas en versión de entrega.
+- [x] Pruebas automáticas ejecutadas en versión de entrega: 92 pruebas y dos E2E.
 - [ ] Casos manuales ejecutados y evidenciados.
 - [ ] Ceremonias documentadas con evidencia auténtica.
-- [ ] PR revisado por compañero y CI verde.
+- [x] PR #59 y PR #60 integrados; CI y CodeQL verdes en `main`.
 - [ ] Issues actualizadas y cerradas solo tras aceptación.
 - [ ] Sustentación repartida y ensayada; asistencia de todos.
 
-La protección de rama, cobertura y bloqueo de merge son extras académicos, pero útiles para impedir regresiones. Configurar en GitHub el check de calidad y una aprobación requerida. No marcar este checklist automáticamente.
+El incremento técnico está integrado, pero el Sprint no debe declararse administrativamente
+cerrado hasta documentar Review, aceptación del Product Owner, prueba manual y Retrospectiva.
+La auditoría del backlog está en `docs/evidencias/sprint-2/BACKLOG-Y-CIERRE.md`.

@@ -1,6 +1,8 @@
 # Sprint 2 — Casos funcionales para ejecución manual
 
-Estado: **diseñados; ejecución humana pendiente**. Los resultados automatizados están separados en la página 24.
+Estado: **17 casos diseñados; ejecución técnica registrada el 20 de octubre de 2026**.
+Los pasos humanos y de servicios reales continúan pendientes. Los resultados automatizados
+también están resumidos en la página 24.
 
 Precondiciones: versión de entrega compilada, backend en ejecución, datos ficticios, usuario Comercial/Contabilidad/Admin. En demo se pierden registros al reiniciar. No enviar correos reales sin autorización.
 
@@ -24,10 +26,41 @@ Precondiciones: versión de entrega compilada, backend en ejecución, datos fict
 | S2-CP16 | HU-26 / S2-26-3/4 | Soporte pendiente/ajeno o segundo cierre                                        | Bloqueo sin modificar saldos                                         |
 | S2-CP17 | HU-23 / S2-23-1/2 | Aprobar enviada como Contabilidad; repetir como Comercial                       | Aprobación autorizada; acción indebida rechazada                     |
 
-## Registro de ejecución (completar con evidencia real)
+## Registro de ejecución técnica
 
-| CP           | Persona | Fecha | Commit y entorno | Resultado observado | Estado    | Evidencia / bug |
-| ------------ | ------- | ----- | ---------------- | ------------------- | --------- | --------------- |
-| Por ejecutar |         |       |                  |                     | Pendiente |                 |
+Responsable técnico: Codex, ejecución reproducible solicitada por el equipo. Fecha: 20 de
+octubre de 2026. Versión: `dba0fb4`, Windows, Node.js, persistencia en memoria y dobles para
+servicios externos. Comando: `npm run verify`.
 
-No cambiar a aprobado basándose solo en la existencia del test automático. Los CP de servicios reales permanecen pendientes si no se dispone de credenciales.
+| CP      | Resultado observado                                                  | Estado técnico      | Evidencia / pendiente                                         |
+| ------- | -------------------------------------------------------------------- | ------------------- | ------------------------------------------------------------- |
+| S2-CP01 | El contrato de Firebase está cubierto, pero no se usó un buzón real  | Pendiente externo   | `password-reset.test.js`; falta recepción real                |
+| S2-CP02 | Validación y modo sin Firebase respondieron sin declarar envío falso | Aprobado automático | 25 pruebas frontend                                           |
+| S2-CP03 | Alta de comercial y acceso posterior aprobados                       | Aprobado automático | `sprint2.test.js` y E2E Sprint 2                              |
+| S2-CP04 | Revocación y control de rol aprobados                                | Aprobado automático | `sprint2.test.js`                                             |
+| S2-CP05 | Búsqueda y selección de catálogo aprobadas                           | Aprobado automático | API y captura `01-catalogo.png`                               |
+| S2-CP06 | Inactivo y consulta sin resultados bloqueados correctamente          | Aprobado automático | `sprint2.test.js`                                             |
+| S2-CP07 | Original intacto y variante recalculada                              | Aprobado automático | API y captura `02-variante.png`                               |
+| S2-CP08 | Cantidad inválida y edición de enviada rechazadas                    | Aprobado automático | `sprint2.test.js`                                             |
+| S2-CP09 | El doble de proveedor registró id, fecha y estado                    | Pendiente externo   | Falta confirmar recepción en buzón real                       |
+| S2-CP10 | Correo inválido y fallo conservaron el borrador                      | Aprobado automático | `sprint2.test.js`                                             |
+| S2-CP11 | La decisión creó aviso con motivo                                    | Aprobado automático | API y captura `03-notificaciones.png`                         |
+| S2-CP12 | Lectura personal e aislamiento aprobados                             | Aprobado automático | `sprint2.test.js`                                             |
+| S2-CP13 | Preprocesamiento y datos de ajuste cubiertos por pruebas             | Parcial             | `receipt-image.test.js`; falta inspección manual del original |
+| S2-CP14 | Vínculo propio aceptado y vínculo ajeno rechazado                    | Aprobado automático | `sprint2.test.js`                                             |
+| S2-CP15 | 200.000 − 150.000 produjo reintegro de 50.000                        | Aprobado automático | E2E y captura `04-legalizacion.png`                           |
+| S2-CP16 | Soportes inválidos y doble cierre fueron bloqueados                  | Aprobado automático | Incluye prueba concurrente                                    |
+| S2-CP17 | Aprobación autorizada y acción comercial indebida rechazadas         | Aprobado automático | Regresión API y E2E                                           |
+
+Resumen: 14 casos aprobados automáticamente, 1 parcial y 2 pendientes de integración real.
+La suite completa aprobó 92 pruebas, dos E2E, compilación, formato y lint. La auditoría no
+detectó vulnerabilidades altas o críticas; reportó 8 moderadas transitivas de Firebase.
+
+## Firma de ejecución manual
+
+| Persona         | Fecha           | Navegador / entorno | Casos repetidos | Resultado | Evidencia / bug |
+| --------------- | --------------- | ------------------- | --------------- | --------- | --------------- |
+| `POR CONFIRMAR` | `POR CONFIRMAR` | `POR CONFIRMAR`     | `POR CONFIRMAR` | Pendiente | `POR ADJUNTAR`  |
+
+No convertir los estados automáticos en aprobación humana. S2-CP01 y S2-CP09 permanecen
+pendientes mientras no se disponga de credenciales y cuentas autorizadas.
