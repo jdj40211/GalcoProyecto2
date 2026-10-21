@@ -1,0 +1,75 @@
+# Inicio de sesion demo de jdiaz
+$ curl -X POST http://127.0.0.1:3000/api/sesion -d '{"usuario":"jdiaz","password":"1234"}'
+HTTP 200
+{"user":{"uid":"dev-jdiaz","nombre":"Juan Díaz","usuario":"jdiaz","email":"jdiaz@demo.local","rol":"comercial","activo":true},"token":"<redactado>","expiresAt":1792549779992}
+
+# Inicio de sesion demo de lgomez
+$ curl -X POST http://127.0.0.1:3000/api/sesion -d '{"usuario":"lgomez","password":"1234"}'
+HTTP 200
+{"user":{"uid":"dev-lgomez","nombre":"Laura Gómez","usuario":"lgomez","email":"lgomez@demo.local","rol":"comercial","activo":true},"token":"<redactado>","expiresAt":1792549780031}
+
+# Inicio de sesion demo de acastro
+$ curl -X POST http://127.0.0.1:3000/api/sesion -d '{"usuario":"acastro","password":"conta2024"}'
+HTTP 200
+{"user":{"uid":"dev-acastro","nombre":"Andrés Castro","usuario":"acastro","email":"acastro@demo.local","rol":"contabilidad","activo":true},"token":"<redactado>","expiresAt":1792549780062}
+
+# Crear solicitud Cali Cliente Aprobado QA
+$ curl -X POST http://127.0.0.1:3000/api/solicitudes-viaticos -H "Authorization: Bearer <token-sesion-demo>" -d '{"destino":"Cali Cliente Aprobado QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Visita comercial con cliente aprobado","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":200000}]}'
+HTTP 201
+{"id":"f891ebff-06f8-47d7-9e1d-42b47b91e015","destino":"Cali Cliente Aprobado QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Visita comercial con cliente aprobado","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":200000}],"consecutivo":"VIA-2026-0001","solicitante":"Juan Díaz","solicitanteLogin":"jdiaz","totalSolicitado":200000,"estado":"borrador","createdAt":"2026-10-21T01:29:40.070Z","updatedAt":"2026-10-21T01:29:40.070Z"}
+
+# Enviar solicitud VIA-2026-0001
+$ curl -X POST http://127.0.0.1:3000/api/solicitudes-viaticos/f891ebff-06f8-47d7-9e1d-42b47b91e015/enviar -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+{"id":"f891ebff-06f8-47d7-9e1d-42b47b91e015","destino":"Cali Cliente Aprobado QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Visita comercial con cliente aprobado","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":200000}],"consecutivo":"VIA-2026-0001","solicitante":"Juan Díaz","solicitanteLogin":"jdiaz","totalSolicitado":200000,"estado":"enviada","createdAt":"2026-10-21T01:29:40.070Z","updatedAt":"2026-10-21T01:29:40.076Z","enviadoEn":"2026-10-21T01:29:40.076Z"}
+
+# Crear solicitud Pereira Cliente Rechazado QA
+$ curl -X POST http://127.0.0.1:3000/api/solicitudes-viaticos -H "Authorization: Bearer <token-sesion-demo>" -d '{"destino":"Pereira Cliente Rechazado QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Visita comercial que sera rechazada","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":90000}]}'
+HTTP 201
+{"id":"898389b3-f0d9-4b7d-8e79-d7be3fbee0ac","destino":"Pereira Cliente Rechazado QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Visita comercial que sera rechazada","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":90000}],"consecutivo":"VIA-2026-0002","solicitante":"Juan Díaz","solicitanteLogin":"jdiaz","totalSolicitado":90000,"estado":"borrador","createdAt":"2026-10-21T01:29:40.082Z","updatedAt":"2026-10-21T01:29:40.082Z"}
+
+# Enviar solicitud VIA-2026-0002
+$ curl -X POST http://127.0.0.1:3000/api/solicitudes-viaticos/898389b3-f0d9-4b7d-8e79-d7be3fbee0ac/enviar -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+{"id":"898389b3-f0d9-4b7d-8e79-d7be3fbee0ac","destino":"Pereira Cliente Rechazado QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Visita comercial que sera rechazada","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":90000}],"consecutivo":"VIA-2026-0002","solicitante":"Juan Díaz","solicitanteLogin":"jdiaz","totalSolicitado":90000,"estado":"enviada","createdAt":"2026-10-21T01:29:40.082Z","updatedAt":"2026-10-21T01:29:40.089Z","enviadoEn":"2026-10-21T01:29:40.089Z"}
+
+# Crear solicitud Barranquilla Legalizacion QA
+$ curl -X POST http://127.0.0.1:3000/api/solicitudes-viaticos -H "Authorization: Bearer <token-sesion-demo>" -d '{"destino":"Barranquilla Legalizacion QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Viaje para probar legalizacion y soportes","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":200000}]}'
+HTTP 201
+{"id":"6f6840f1-0f69-4d09-bf1d-c7be799cc959","destino":"Barranquilla Legalizacion QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Viaje para probar legalizacion y soportes","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":200000}],"consecutivo":"VIA-2026-0003","solicitante":"Juan Díaz","solicitanteLogin":"jdiaz","totalSolicitado":200000,"estado":"borrador","createdAt":"2026-10-21T01:29:40.094Z","updatedAt":"2026-10-21T01:29:40.094Z"}
+
+# Enviar solicitud VIA-2026-0003
+$ curl -X POST http://127.0.0.1:3000/api/solicitudes-viaticos/6f6840f1-0f69-4d09-bf1d-c7be799cc959/enviar -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+{"id":"6f6840f1-0f69-4d09-bf1d-c7be799cc959","destino":"Barranquilla Legalizacion QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Viaje para probar legalizacion y soportes","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":200000}],"consecutivo":"VIA-2026-0003","solicitante":"Juan Díaz","solicitanteLogin":"jdiaz","totalSolicitado":200000,"estado":"enviada","createdAt":"2026-10-21T01:29:40.094Z","updatedAt":"2026-10-21T01:29:40.100Z","enviadoEn":"2026-10-21T01:29:40.100Z"}
+
+# Crear solicitud Cartagena Laura QA
+$ curl -X POST http://127.0.0.1:3000/api/solicitudes-viaticos -H "Authorization: Bearer <token-sesion-demo>" -d '{"destino":"Cartagena Laura QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Viaje de otra comercial para pruebas de ajenos","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":120000}]}'
+HTTP 201
+{"id":"6e4f1a97-3dc5-4871-b96b-cb72d05fadcb","destino":"Cartagena Laura QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Viaje de otra comercial para pruebas de ajenos","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":120000}],"consecutivo":"VIA-2026-0004","solicitante":"Laura Gómez","solicitanteLogin":"lgomez","totalSolicitado":120000,"estado":"borrador","createdAt":"2026-10-21T01:29:40.106Z","updatedAt":"2026-10-21T01:29:40.106Z"}
+
+# Enviar solicitud VIA-2026-0004
+$ curl -X POST http://127.0.0.1:3000/api/solicitudes-viaticos/6e4f1a97-3dc5-4871-b96b-cb72d05fadcb/enviar -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+{"id":"6e4f1a97-3dc5-4871-b96b-cb72d05fadcb","destino":"Cartagena Laura QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Viaje de otra comercial para pruebas de ajenos","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":120000}],"consecutivo":"VIA-2026-0004","solicitante":"Laura Gómez","solicitanteLogin":"lgomez","totalSolicitado":120000,"estado":"enviada","createdAt":"2026-10-21T01:29:40.106Z","updatedAt":"2026-10-21T01:29:40.111Z","enviadoEn":"2026-10-21T01:29:40.111Z"}
+
+# Aprobar solicitud de legalizacion (API, preparacion)
+$ curl -X POST http://127.0.0.1:3000/api/solicitudes-viaticos/6f6840f1-0f69-4d09-bf1d-c7be799cc959/aprobar -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+{"id":"6f6840f1-0f69-4d09-bf1d-c7be799cc959","destino":"Barranquilla Legalizacion QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Viaje para probar legalizacion y soportes","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":200000}],"consecutivo":"VIA-2026-0003","solicitante":"Juan Díaz","solicitanteLogin":"jdiaz","totalSolicitado":200000,"estado":"aprobada","createdAt":"2026-10-21T01:29:40.094Z","updatedAt":"2026-10-21T01:29:55.128Z","enviadoEn":"2026-10-21T01:29:40.100Z","aprobadoPor":"Andrés Castro","aprobadoEn":"2026-10-21T01:29:55.128Z","rechazadoPor":null,"rechazadoEn":null,"motivoRechazo":null}
+
+# Aprobar solicitud de Laura (API, preparacion)
+$ curl -X POST http://127.0.0.1:3000/api/solicitudes-viaticos/6e4f1a97-3dc5-4871-b96b-cb72d05fadcb/aprobar -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+{"id":"6e4f1a97-3dc5-4871-b96b-cb72d05fadcb","destino":"Cartagena Laura QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Viaje de otra comercial para pruebas de ajenos","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":120000}],"consecutivo":"VIA-2026-0004","solicitante":"Laura Gómez","solicitanteLogin":"lgomez","totalSolicitado":120000,"estado":"aprobada","createdAt":"2026-10-21T01:29:40.106Z","updatedAt":"2026-10-21T01:29:55.135Z","enviadoEn":"2026-10-21T01:29:40.111Z","aprobadoPor":"Andrés Castro","aprobadoEn":"2026-10-21T01:29:55.135Z","rechazadoPor":null,"rechazadoEn":null,"motivoRechazo":null}
+
+# Bandeja de jdiaz por API
+$ curl -X GET http://127.0.0.1:3000/api/notificaciones -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+[{"destinatario":"jdiaz","solicitudId":"6f6840f1-0f69-4d09-bf1d-c7be799cc959","mensaje":"VIA-2026-0003: aprobada","leida":false,"fecha":"2026-10-21T01:29:55.128Z","id":"d398fbdc-e3dc-4731-963e-344509c5f991"},{"destinatario":"jdiaz","solicitudId":"898389b3-f0d9-4b7d-8e79-d7be3fbee0ac","mensaje":"VIA-2026-0002: rechazada. Presupuesto excede el tope del centro de costo COM-01","leida":false,"fecha":"2026-10-21T01:29:53.417Z","id":"40322346-bb1f-4acb-b5e3-274a5aaeec9a"},{"destinatario":"jdiaz","solicitudId":"f891ebff-06f8-47d7-9e1d-42b47b91e015","mensaje":"VIA-2026-0001: aprobada","leida":false,"fecha":"2026-10-21T01:29:41.684Z","id":"40926892-9981-4992-a746-2b26be35b095"},{"destinatario":"jdiaz","solicitudId":"6f6840f1-0f69-4d09-bf1d-c7be799cc959","mensaje":"VIA-2026-0003: enviada","leida":false,"fecha":"2026-10-21T01:29:40.100Z","id":"546ef0d2-fc9b-4192-95f2-f5dcf782d325"},{"destinatario":"jdiaz","solicitudId":"898389b3-f0d9-4b7d-8e79-d7be3fbee0ac","mensaje":"VIA-2026-0002: enviada","leida":false,"fecha":"2026-10-21T01:29:40.089Z","id":"5ca58e3c-389a-4b5b-a077-54686e63605f"},{"destinatario":"jdiaz","solicitudId":"f891ebff-06f8-47d7-9e1d-42b47b91e015","mensaje":"VIA-2026-0001: enviada","leida":false,"fecha":"2026-10-21T01:29:40.076Z","id":"06322bf7-e5d6-4a5f-b461-4f935f030547"}]
+
+# Detalle de la solicitud rechazada
+$ curl -X GET http://127.0.0.1:3000/api/solicitudes-viaticos/898389b3-f0d9-4b7d-8e79-d7be3fbee0ac -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+{"id":"898389b3-f0d9-4b7d-8e79-d7be3fbee0ac","destino":"Pereira Cliente Rechazado QA","fechaInicio":"2026-10-21","fechaFin":"2026-10-23","motivo":"Visita comercial que sera rechazada","centroCosto":"COM-01","moneda":"COP","gastos":[{"id":"g1","categoria":"transporte","descripcion":"Tiquetes y desplazamientos","valor":90000}],"consecutivo":"VIA-2026-0002","solicitante":"Juan Díaz","solicitanteLogin":"jdiaz","totalSolicitado":90000,"estado":"rechazada","createdAt":"2026-10-21T01:29:40.082Z","updatedAt":"2026-10-21T01:29:53.417Z","enviadoEn":"2026-10-21T01:29:40.089Z","motivoRechazo":"Presupuesto excede el tope del centro de costo COM-01","rechazadoPor":"Andrés Castro","rechazadoEn":"2026-10-21T01:29:53.417Z","aprobadoPor":null,"aprobadoEn":null}
+

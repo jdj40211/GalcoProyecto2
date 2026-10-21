@@ -1,0 +1,35 @@
+# Inicio de sesion demo de acastro
+$ curl -X POST http://127.0.0.1:3000/api/sesion -d '{"usuario":"acastro","password":"conta2024"}'
+HTTP 200
+{"user":{"uid":"dev-acastro","nombre":"Andrés Castro","usuario":"acastro","email":"acastro@demo.local","rol":"contabilidad","activo":true},"token":"<redactado>","expiresAt":1792549717924}
+
+# Contabilidad ve la configuracion inactiva con incluirInactivas
+$ curl -X GET http://127.0.0.1:3000/api/cotizador/configuraciones?q=cercha-6-12&incluirInactivas=true -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+[{"codigo":"Cercha-6-12","nombre":"Poste Cercha 6 m / brazo 12 m","configuracion":{"tipoPoste":"Cercha","altura":6,"brazo":12,"pintura":false,"cantidad":1},"componentes":[{"id":"C1","nombre":"Placa base 40x40","areaM2":0.33,"pesoKg":15,"cantidad":2},{"id":"C2","nombre":"Cartela cuadrada","areaM2":0.03,"pesoKg":1.2,"cantidad":8},{"id":"C3","nombre":"Brida 6 perforaciones","areaM2":0.1,"pesoKg":2,"cantidad":16},{"id":"C4","nombre":"Tapa 6\"","areaM2":0.02,"pesoKg":0.1,"cantidad":2},{"id":"C5","nombre":"Ventanilla inspección","areaM2":0.08,"pesoKg":1,"cantidad":2},{"id":"C6","nombre":"Corona antiescalatoria","areaM2":0.08,"pesoKg":10,"cantidad":2},{"id":"C7","nombre":"Acople 3/4\"","areaM2":0.05,"pesoKg":0.1,"cantidad":4},{"id":"C8","nombre":"Acople 1\"","areaM2":0.05,"pesoKg":0.1,"cantidad":4},{"id":"C9","nombre":"Canastilla anclaje","areaM2":0,"pesoKg":3,"cantidad":2},{"id":"C10","nombre":"Placa identificación","areaM2":0,"pesoKg":0.5,"cantidad":2}],"tubos":{"VERTICAL_6":{"tipo":"Vertical","diametro":"6\"","diametroMetros":0.1524,"costoPorTramo6m":600000,"pesoPorMetro":14.9},"HORIZONTAL_4":{"tipo":"Horizontal","diametro":"4\"","diametroMetros":0.1143,"costoPorTramo6m":247575,"pesoPorMetro":8.35},"HORIZONTAL_3":{"tipo":"Horizontal","diametro":"3\"","diametroMetros":0.089,"costoPorTramo6m":173376,"pesoPorMetro":6.47},"DIAGONAL_2":{"tipo":"Diagonal","diametro":"2\"","diametroMetrosCercha":0.0508,"diametroMetrosBrazoCercha":0.06,"costoPorTramo6m":117376,"pesoPorMetro":4.33}},"acabado":"Galvanizado; pintura opcional","especificacionPendiente":"Espesor y grado del acero requieren ficha técnica validada por GALCO.","activo":false}]
+
+# Comercial intenta desactivar/activar configuracion (debe 403)
+$ curl -X PATCH http://127.0.0.1:3000/api/cotizador/configuraciones/Cercha-6-12 -H "Authorization: Bearer <token-sesion-demo>" -d '{"activo":true}'
+HTTP 403
+{"statusCode":403,"error":"Forbidden","message":"Insufficient scope"}
+
+# Comercial busca cercha-6-12 (inactiva)
+$ curl -X GET http://127.0.0.1:3000/api/cotizador/configuraciones?q=cercha-6-12&incluirInactivas=true -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+[]
+
+# Comercial busca inexistente
+$ curl -X GET http://127.0.0.1:3000/api/cotizador/configuraciones?q=poste-inexistente-999 -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+[]
+
+# Comercial intenta cotizar la configuracion inactiva por API
+$ curl -X POST http://127.0.0.1:3000/api/cotizador -H "Authorization: Bearer <token-sesion-demo>" -d '{"configuracion":{"tipoPoste":"Cercha","altura":6,"brazo":12,"pintura":false,"cantidad":1},"metadata":{"cliente":"Cliente inactiva","vigenciaHasta":"2099-12-31"}}'
+HTTP 409
+{"statusCode":409,"error":"Conflict","message":"La configuración está inactiva."}
+
+# RESTAURACION: Contabilidad reactiva la configuracion para no afectar otros casos
+$ curl -X PATCH http://127.0.0.1:3000/api/cotizador/configuraciones/Cercha-6-12 -H "Authorization: Bearer <token-sesion-demo>" -d '{"activo":true}'
+HTTP 200
+{"codigo":"Cercha-6-12","activo":true}
+
