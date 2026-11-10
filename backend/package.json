@@ -20,9 +20,9 @@
     "dotenv": "16.4.7",
     "firebase-admin": "13.10.0",
     "handlebars": "4.7.10",
-    "joi": "17.13.8",
+    "joi": "17.13.9",
     "mongodb": "7.2.0",
     "mongoose": "8.24.4",
-    "puppeteer": "25.9.0"
+    "puppeteer": "25.17.0"
   }
 }

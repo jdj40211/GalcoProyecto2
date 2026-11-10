@@ -5,17 +5,21 @@ const fs = require('node:fs');
 const path = require('node:path');
 const config = require('./config');
 
-async function registerFrontend(server) {
+const DEFAULT_FRONTEND_DIRECTORY = path.resolve(__dirname, '../frontend/dist');
+
+async function registerFrontend(server, frontendDirectory = DEFAULT_FRONTEND_DIRECTORY) {
   if (!config.serveFrontend) return;
 
-  const frontendDirectory = path.resolve(__dirname, '../frontend/dist');
-  const frontendDirectoryReal = fs.realpathSync(frontendDirectory);
-  const entryFile = path.join(frontendDirectory, 'index.html');
-  if (!fs.existsSync(entryFile)) {
+  if (!fs.existsSync(path.join(frontendDirectory, 'index.html'))) {
     throw new Error(
       'No se encontró frontend/dist/index.html. Ejecuta "npm run build" antes de iniciar la suite integrada.'
     );
   }
+  const frontendDirectoryReal = fs.realpathSync(frontendDirectory);
+  const entryFile = path.join(frontendDirectoryReal, 'index.html');
+  // inert confina por defecto los archivos al directorio de trabajo. Con `npm start` ese
+  // directorio es backend/ y frontend/dist queda fuera, lo que respondía 403 (#62).
+  const sendFile = (h, file) => h.file(file, { confine: frontendDirectoryReal });
 
   await server.register(require('@hapi/inert'));
   server.route({
@@ -32,13 +36,13 @@ async function registerFrontend(server) {
       const hasInvalidSegments =
         requestedPath.includes('\0') || requestedPath.includes('\\') || path.isAbsolute(requestedPath);
       if (!hasOnlySafeChars || hasInvalidSegments) {
-        return h.file(entryFile);
+        return sendFile(h, entryFile);
       }
 
       const normalizedRequestedPath = path.posix.normalize(requestedPath).replace(/^(\.\.(\/|\\|$))+/, '');
       const normalizedSegments = normalizedRequestedPath.split('/');
       if (normalizedSegments.includes('..')) {
-        return h.file(entryFile);
+        return sendFile(h, entryFile);
       }
 
       const candidate = path.resolve(frontendDirectoryReal, normalizedRequestedPath);
@@ -46,26 +50,26 @@ async function registerFrontend(server) {
       const isInsideFrontend =
         relativeToRoot === '' || (!relativeToRoot.startsWith('..') && !path.isAbsolute(relativeToRoot));
       if (!isInsideFrontend) {
-        return h.file(entryFile);
+        return sendFile(h, entryFile);
       }
 
       let candidateReal;
       try {
         candidateReal = fs.realpathSync(candidate);
       } catch (_) {
-        return h.file(entryFile);
+        return sendFile(h, entryFile);
       }
 
       const realRelativeToRoot = path.relative(frontendDirectoryReal, candidateReal);
       const isInsideFrontendReal =
         realRelativeToRoot === '' || (!realRelativeToRoot.startsWith('..') && !path.isAbsolute(realRelativeToRoot));
       const isFile = isInsideFrontendReal && fs.statSync(candidateReal).isFile();
-      return h.file(isFile ? candidateReal : entryFile);
+      return sendFile(h, isFile ? candidateReal : entryFile);
     }
   });
 }
 
-async function createServer() {
+async function createServer({ frontendDirectory } = {}) {
   const server = Hapi.server({
     host: config.host,
     port: config.port,
@@ -92,7 +96,7 @@ async function createServer() {
   await server.register(require('./modules/viaticos/viaticos.plugin'), { routes: { prefix: '/api' } });
   await server.register(require('./modules/cotizador/cotizador.plugin'), { routes: { prefix: '/api' } });
   await server.register(require('./modules/hojasdevida/hojasdevida.plugin'), { routes: { prefix: '/api' } });
-  await registerFrontend(server);
+  await registerFrontend(server, frontendDirectory);
   return server;
 }
 
