@@ -9,10 +9,12 @@ process.env.PERSISTENCE_MODE = 'memory';
 process.env.OCR_PROVIDER = 'demo';
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const puppeteer = require('puppeteer');
 const { createServer } = require('../app');
 const candidates = require('../modules/hojasdevida/services/candidatos.repository.service');
+const storage = require('../modules/hojasdevida/services/documentos.storage.service');
 const directory = path.resolve(__dirname, '../../docs/evidencias/sprint-3/ui');
 const url = 'http://127.0.0.1:3103';
 
@@ -124,6 +126,42 @@ async function run() {
     await button('Registrar candidato');
     await page.waitForFunction(() => document.querySelector('.alert.error')?.textContent.includes('Ya existe'));
     assert.equal((await candidates.list()).length, 1);
+
+    // HU-14: adjuntar la hoja de vida, rechazar un formato no permitido y descargar.
+    const files = fs.mkdtempSync(path.join(os.tmpdir(), 'galco-e2e-'));
+    const resume = path.join(files, 'Hoja de vida Ana Pérez.pdf');
+    const resumeBytes = Buffer.from('%PDF-1.7\nHoja de vida de prueba\n%%EOF\n');
+    fs.writeFileSync(resume, resumeBytes);
+    const executable = path.join(files, 'programa.exe');
+    fs.writeFileSync(executable, 'MZ ejecutable');
+    try {
+      await button('Documentos (0)');
+      await contains('Sin documentos');
+      const input = await page.waitForSelector('#document-file');
+      await input.uploadFile(executable);
+      await button('Adjuntar documento');
+      await page.waitForFunction(() =>
+        document.querySelector('.modal .alert.error')?.textContent.includes('PDF, DOC o DOCX')
+      );
+      await input.uploadFile(resume);
+      await button('Adjuntar documento');
+      await contains('quedó adjunto a Ana María Pérez');
+      await contains('Hoja de vida Ana Pérez.pdf');
+      const [withDocument] = await candidates.list();
+      assert.equal(withDocument.documentos.length, 1);
+      assert.equal(withDocument.documentos[0].cargadoPor, 'mrestrepo');
+      assert.ok((await storage.read(withDocument.documentos[0].archivoId)).equals(resumeBytes));
+      await button('Descargar');
+      assert.equal(await page.$('.modal .alert.error'), null);
+      await shot('04-documentos-candidato.png');
+      // El botón del diálogo, no "Cerrar sesión" del menú lateral.
+      await page.click('.modal .modal-actions .btn-outline');
+      await page.waitForFunction(() => !document.querySelector('.modal'));
+      await contains('Documentos (1)');
+    } finally {
+      fs.rmSync(files, { recursive: true, force: true });
+    }
+
     await page.setViewport({ width: 390, height: 844 });
     await shot('03-candidatos-movil.png');
     await page.setViewport({ width: 1440, height: 1000 });
@@ -138,7 +176,7 @@ async function run() {
     assert.doesNotMatch(await page.$eval('.nav-menu', (element) => element.innerText), /Candidatos/);
 
     assert.deepEqual(errors, []);
-    console.log('E2E_HOJASDEVIDA_OK: rol RRHH, registro, validaciones, duplicado y permisos.');
+    console.log('E2E_HOJASDEVIDA_OK: rol RRHH, registro, validaciones, duplicado, documentos y permisos.');
   } finally {
     await browser.close();
     await server.stop();

@@ -220,6 +220,7 @@
             <th>Autorización de datos</th>
             <th>Registro</th>
             <th>Estado</th>
+            <th>Documentos</th>
           </tr>
         </thead>
         <tbody>
@@ -231,19 +232,82 @@
             <td>{{ item.autorizacionDatos?.otorgada ? 'Sí' : 'No' }}</td>
             <td>{{ dateShort(item.createdAt) }}</td>
             <td><StatusBadge :status="item.estado" /></td>
+            <td>
+              <button class="btn btn-outline" type="button" @click="openDocuments(item)">
+                Documentos ({{ item.documentos?.length || 0 }})
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <BaseModal :open="Boolean(selected)" :title="`Documentos de ${selected?.nombre || ''}`" @close="closeDocuments">
+      <p v-if="documentError" class="alert error" role="alert">{{ documentError }}</p>
+      <EmptyState
+        v-if="!selected?.documentos?.length"
+        icon="fa-file-lines"
+        title="Sin documentos"
+        message="Adjunta la hoja de vida o los soportes del candidato."
+      />
+      <div v-else class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Documento</th>
+              <th>Tipo</th>
+              <th>Tamaño</th>
+              <th>Cargado</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="document in selected.documentos" :key="document.id">
+              <td>{{ document.nombre }}</td>
+              <td>{{ documentTypes[document.tipoDocumento] }}</td>
+              <td>{{ Math.max(1, Math.round(document.tamano / 1024)) }} KB</td>
+              <td>{{ dateShort(document.cargadoEn) }} · {{ document.cargadoPor }}</td>
+              <td>
+                <button class="btn btn-outline" type="button" @click="download(document)">Descargar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <form class="candidate-form" @submit.prevent="attach">
+        <div class="form-group">
+          <label for="document-type">Tipo de documento</label
+          ><select id="document-type" v-model="upload.tipoDocumento">
+            <option v-for="(label, value) in documentTypes" :key="value" :value="value">{{ label }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="document-file">Archivo PDF, DOC o DOCX (máximo 10 MB)</label
+          ><input
+            id="document-file"
+            ref="fileInput"
+            type="file"
+            :accept="ACCEPTED_FILES"
+            required
+            @change="upload.file = $event.target.files[0] || null"
+          />
+        </div>
+        <div class="button-row modal-actions">
+          <button class="btn btn-primary" :disabled="uploading || !upload.file">Adjuntar documento</button>
+          <button class="btn btn-outline" type="button" @click="closeDocuments">Cerrar</button>
+        </div>
+      </form>
+    </BaseModal>
   </section>
 </template>
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
+import BaseModal from '@/components/BaseModal.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { idTypes } from '@/config/domain';
-import { dateShort } from '@/services/format';
+import { dateShort, fileToDataUrl } from '@/services/format';
 import { candidatosService } from '@/services/candidatos.service';
 import { useToastStore } from '@/stores/toast.store';
 
@@ -317,6 +381,73 @@ async function save() {
     error.value = err.message;
   } finally {
     saving.value = false;
+  }
+}
+
+// HU-14: documentos del candidato. El servidor vuelve a validar formato, contenido y tamaño.
+const ACCEPTED_FILES =
+  '.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+// El tipo sale de la extensión: algunos navegadores entregan los .doc con el tipo vacío.
+const MIME_BY_EXTENSION = {
+  pdf: 'application/pdf',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+};
+const documentTypes = { hoja_de_vida: 'Hoja de vida', soporte: 'Soporte' };
+const selected = ref(null);
+const documentError = ref('');
+const uploading = ref(false);
+const fileInput = ref(null);
+const upload = reactive({ tipoDocumento: 'hoja_de_vida', file: null });
+
+function resetUpload() {
+  Object.assign(upload, { tipoDocumento: 'hoja_de_vida', file: null });
+  if (fileInput.value) fileInput.value.value = '';
+}
+function openDocuments(candidate) {
+  selected.value = candidate;
+  documentError.value = '';
+  resetUpload();
+}
+function closeDocuments() {
+  selected.value = null;
+  documentError.value = '';
+}
+
+async function attach() {
+  const file = upload.file;
+  const tipo = MIME_BY_EXTENSION[(file?.name.split('.').pop() || '').toLowerCase()];
+  documentError.value = !tipo
+    ? 'Solo se aceptan archivos PDF, DOC o DOCX.'
+    : file.size > MAX_FILE_BYTES
+      ? 'El archivo supera el tamaño máximo de 10 MB.'
+      : '';
+  if (documentError.value) return;
+  uploading.value = true;
+  try {
+    const document = await candidatosService.attach(selected.value.id, {
+      nombre: file.name,
+      tipo,
+      tipoDocumento: upload.tipoDocumento,
+      fileDataUrl: await fileToDataUrl(file)
+    });
+    selected.value.documentos = [...(selected.value.documentos || []), document];
+    resetUpload();
+    toast.show(`${document.nombre} quedó adjunto a ${selected.value.nombre}.`, 'success');
+  } catch (err) {
+    documentError.value = err.message;
+  } finally {
+    uploading.value = false;
+  }
+}
+
+async function download(document) {
+  documentError.value = '';
+  try {
+    await candidatosService.download(selected.value.id, document);
+  } catch (err) {
+    documentError.value = err.message;
   }
 }
 
