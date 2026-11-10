@@ -158,6 +158,28 @@ async function run() {
       await page.click('.modal .modal-actions .btn-outline');
       await page.waitForFunction(() => !document.querySelector('.modal'));
       await contains('Documentos (1)');
+
+      // HU-28: la IA propone, RRHH corrige y confirma; nada se guarda antes de confirmar.
+      await button('Documentos (1)');
+      await button('Analizar con IA');
+      await page.waitForFunction(() => /^\/candidatos\/[^/]+\/analisis\/[^/]+$/.test(location.pathname));
+      await contains('Revisar análisis de hoja de vida');
+      await contains('pendiente de revisión');
+      await page.waitForSelector('#review-name');
+      assert.equal(await page.$eval('#review-phone', (element) => element.classList.contains('input-missing')), true);
+      assert.equal((await candidates.list())[0].nombre, 'Ana María Pérez', 'sin confirmar, la ficha no cambia');
+      await set('#review-name', 'Ana María Pérez Gómez');
+      await set('#review-phone', '300 123 4567');
+      await shot('05-revision-analisis.png');
+      await button('Confirmar datos');
+      await page.waitForFunction(() => location.pathname === '/candidatos');
+      await contains('quedaron confirmados');
+      const [reviewed] = await candidates.list();
+      assert.equal(reviewed.nombre, 'Ana María Pérez Gómez');
+      assert.equal(reviewed.telefono, '300 123 4567');
+      assert.ok(reviewed.experiencia.length > 0 && reviewed.anosExperiencia > 0);
+      assert.equal(reviewed.analisis[0].estado, 'confirmado');
+      assert.deepEqual(reviewed.analisis[0].correcciones.map((item) => item.campo).sort(), ['nombre', 'telefono']);
     } finally {
       fs.rmSync(files, { recursive: true, force: true });
     }
@@ -176,7 +198,9 @@ async function run() {
     assert.doesNotMatch(await page.$eval('.nav-menu', (element) => element.innerText), /Candidatos/);
 
     assert.deepEqual(errors, []);
-    console.log('E2E_HOJASDEVIDA_OK: rol RRHH, registro, validaciones, duplicado, documentos y permisos.');
+    console.log(
+      'E2E_HOJASDEVIDA_OK: rol RRHH, registro, validaciones, duplicado, documentos, análisis con IA y permisos.'
+    );
   } finally {
     await browser.close();
     await server.stop();

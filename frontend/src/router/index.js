@@ -18,6 +18,11 @@ const routes = [
     meta: { roles: ['rrhh', 'admin'], title: 'Candidatos' }
   },
   {
+    path: '/candidatos/:id/analisis/:analisisId',
+    component: () => import('@/views/ReviewAnalysisView.vue'),
+    meta: { roles: ['rrhh', 'admin'], title: 'Revisar análisis de hoja de vida' }
+  },
+  {
     path: '/cotizador/:id/editar',
     component: () => import('@/views/QuoteVariantView.vue'),
     meta: { roles: ['comercial', 'contabilidad'], title: 'Editar variante' }

@@ -55,6 +55,42 @@ module.exports = {
     item.updatedAt = new Date().toISOString();
     return clone(item);
   },
+  // Guarda un análisis de IA pendiente; se conservan los `keep` más recientes.
+  async addAnalysis(id, analysis, keep) {
+    if (config.persistence.mode === 'mongo') {
+      await Candidato.updateOne({ _id: id }, { $push: { analisis: { $each: [analysis], $slice: -keep } } });
+      return;
+    }
+    const item = memory.find((entry) => entry.id === id);
+    item.analisis = [...(item.analisis || []), clone(analysis)].slice(-keep);
+  },
+  // Aplica los datos confirmados y cierra el análisis en una sola operación: un segundo intento sobre
+  // el mismo análisis no encuentra nada pendiente y devuelve null.
+  async confirmAnalysis(id, analysisId, changes, analysisPatch) {
+    if (config.persistence.mode === 'mongo') {
+      if (!mongoose.isValidObjectId(id)) return null;
+      const set = { ...changes };
+      for (const [key, value] of Object.entries(analysisPatch)) set[`analisis.$.${key}`] = value;
+      try {
+        const updated = await Candidato.findOneAndUpdate(
+          { _id: id, analisis: { $elemMatch: { id: analysisId, estado: 'pendiente' } } },
+          { $set: set },
+          { new: true, runValidators: true }
+        );
+        return updated?.toJSON() ?? null;
+      } catch (error) {
+        if (error.code === 11000) throw duplicate();
+        throw error;
+      }
+    }
+    const item = memory.find((entry) => entry.id === id);
+    const analysis = item?.analisis?.find((entry) => entry.id === analysisId && entry.estado === 'pendiente');
+    if (!analysis) return null;
+    if (changes.correo && memory.some((entry) => entry !== item && entry.correo === changes.correo)) throw duplicate();
+    Object.assign(item, clone(changes), { updatedAt: new Date().toISOString() });
+    Object.assign(analysis, clone(analysisPatch));
+    return clone(item);
+  },
   resetMemory() {
     memory.splice(0);
   }
