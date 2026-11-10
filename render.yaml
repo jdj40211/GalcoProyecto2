@@ -1,0 +1,60 @@
+# Blueprint de Render para la Suite GALCO (HU-32). Guía: docs/wiki/29-Sprint-3-Despliegue.md
+# Los valores marcados con sync: false se escriben en el panel de Render y nunca en el repositorio.
+services:
+  - type: web
+    name: galco-suite
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # Virginia es la región de Render más cercana a Colombia.
+    region: virginia
+    plan: free
+    # Sin "branch": Render despliega la rama elegida al crear el Blueprint (main una vez fusionados los PR).
+    autoDeploy: true
+    # Render solo da el despliegue por bueno si la API responde aquí.
+    healthCheckPath: /api/health
+    envVars:
+      # --- Servidor ---
+      - key: NODE_ENV
+        value: production
+      - key: AUTH_BYPASS
+        value: 'false'
+      # --- MongoDB Atlas ---
+      - key: PERSISTENCE_MODE
+        value: mongo
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB
+        value: galco_suite
+      # --- Firebase Authentication (servidor) ---
+      - key: FIREBASE_CREDENTIALS_JSON
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_EMAIL_DOMAIN
+        sync: false
+      # --- Firebase Authentication (interfaz, se usan al compilar) ---
+      - key: VITE_FIREBASE_API_KEY
+        sync: false
+      - key: VITE_FIREBASE_AUTH_DOMAIN
+        sync: false
+      - key: VITE_FIREBASE_PROJECT_ID
+        sync: false
+      - key: VITE_FIREBASE_STORAGE_BUCKET
+        sync: false
+      - key: VITE_FIREBASE_MESSAGING_SENDER_ID
+        sync: false
+      - key: VITE_FIREBASE_APP_ID
+        sync: false
+      - key: VITE_FIREBASE_EMAIL_DOMAIN
+        sync: false
+      - key: VITE_SESSION_IDLE_MINUTES
+        value: '30'
+      # --- IA: OCR de viáticos y analizador de hojas de vida ---
+      - key: OCR_PROVIDER
+        value: openai
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4.1-mini
+      - key: OCR_TIMEOUT_MS
+        value: '45000'
