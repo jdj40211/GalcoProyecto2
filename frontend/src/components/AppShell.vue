@@ -40,7 +40,11 @@ import { startIdleWatch } from '@/services/session';
 
 const auth = useAuthStore();
 const router = useRouter();
-const humanResources = [{ section: 'HOJAS DE VIDA' }, { to: '/candidatos', label: 'Candidatos', icon: 'fa-id-card' }];
+const humanResources = [
+  { section: 'HOJAS DE VIDA' },
+  { to: '/candidatos', label: 'Candidatos', icon: 'fa-id-card' },
+  { to: '/vacantes', label: 'Vacantes', icon: 'fa-briefcase' }
+];
 const navigation = computed(() =>
   auth.user?.rol === 'admin'
     ? [{ section: 'ADMINISTRACIÓN' }, { to: '/usuarios', label: 'Usuarios', icon: 'fa-users' }, ...humanResources]

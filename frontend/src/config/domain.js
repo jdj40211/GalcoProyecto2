@@ -24,8 +24,28 @@ export const statuses = {
   confirmado: { label: 'Confirmado', tone: 'success', icon: 'fa-circle-check' },
   procesado: { label: 'Procesado', tone: 'info', icon: 'fa-file-export' },
   error: { label: 'Con error', tone: 'warning', icon: 'fa-triangle-exclamation' },
-  registrado: { label: 'Registrado', tone: 'info', icon: 'fa-user-plus' }
+  registrado: { label: 'Registrado', tone: 'info', icon: 'fa-user-plus' },
+  abierta: { label: 'Abierta', tone: 'success', icon: 'fa-door-open' },
+  cerrada: { label: 'Cerrada', tone: 'info', icon: 'fa-lock' }
 };
+
+// Escala de formación de una vacante, de menor a mayor; el backend valida la misma lista (HU-29).
+export const formationLevels = [
+  'Bachiller',
+  'Técnico',
+  'Tecnólogo',
+  'Profesional',
+  'Especialización',
+  'Maestría',
+  'Doctorado'
+];
+// Criterios con los que se evalúa a un candidato frente a una vacante (HU-29, HU-30).
+export const vacancyCriteria = [
+  { id: 'formacion', nombre: 'Formación' },
+  { id: 'experiencia', nombre: 'Experiencia' },
+  { id: 'certificaciones', nombre: 'Certificaciones' },
+  { id: 'habilidades', nombre: 'Habilidades' }
+];
 
 // Tipos de documento de identidad de un candidato; el backend valida la misma lista.
 export const idTypes = [

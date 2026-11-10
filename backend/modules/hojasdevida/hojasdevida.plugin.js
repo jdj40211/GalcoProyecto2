@@ -3,7 +3,9 @@
 const service = require('./services/candidatos.service');
 const documents = require('./services/documentos.service');
 const analyses = require('./services/analisis.service');
+const vacancies = require('./services/vacantes.service');
 const schemas = require('./validators/candidato.validator');
+const vacancySchemas = require('./validators/vacante.validator');
 
 // Las hojas de vida son datos personales: solo Recursos Humanos y administración las consultan (HU-13 CA6).
 const auth = { strategy: 'firebase', scope: ['rrhh', 'admin'] };
@@ -17,6 +19,37 @@ module.exports = {
   version: '1.0.0',
   register: async (server) =>
     server.route([
+      // HU-29: vacantes con sus criterios de evaluación.
+      { method: 'GET', path: '/vacantes', options: { auth, handler: () => vacancies.list() } },
+      {
+        method: 'GET',
+        path: '/vacantes/{id}',
+        options: { auth, handler: (request) => vacancies.get(request.params.id) }
+      },
+      {
+        method: 'POST',
+        path: '/vacantes',
+        options: {
+          auth,
+          validate: { payload: vacancySchemas.vacancy, options: { abortEarly: false, stripUnknown: true }, failAction },
+          handler: async (request, h) =>
+            h.response(await vacancies.create(request.payload, request.auth.credentials)).code(201)
+        }
+      },
+      {
+        method: 'PUT',
+        path: '/vacantes/{id}',
+        options: {
+          auth,
+          validate: { payload: vacancySchemas.vacancy, options: { abortEarly: false, stripUnknown: true }, failAction },
+          handler: (request) => vacancies.update(request.params.id, request.payload, request.auth.credentials)
+        }
+      },
+      {
+        method: 'POST',
+        path: '/vacantes/{id}/cerrar',
+        options: { auth, handler: (request) => vacancies.close(request.params.id, request.auth.credentials) }
+      },
       {
         method: 'GET',
         path: '/candidatos',

@@ -15,6 +15,7 @@ const puppeteer = require('puppeteer');
 const { createServer } = require('../app');
 const candidates = require('../modules/hojasdevida/services/candidatos.repository.service');
 const storage = require('../modules/hojasdevida/services/documentos.storage.service');
+const vacancies = require('../modules/hojasdevida/services/vacantes.repository.service');
 const directory = path.resolve(__dirname, '../../docs/evidencias/sprint-3/ui');
 const url = 'http://127.0.0.1:3103';
 
@@ -188,6 +189,55 @@ async function run() {
     await shot('03-candidatos-movil.png');
     await page.setViewport({ width: 1440, height: 1000 });
 
+    // HU-29: crear, versionar y cerrar una vacante.
+    // Botón por su texto exacto dentro de la tabla: "Cerrar" no debe confundirse con "Cerrar sesión".
+    const tableButton = (text) =>
+      page.evaluate(
+        (label) => [...document.querySelectorAll('table button')].find((b) => b.textContent.trim() === label).click(),
+        text
+      );
+    await page.click('a[href="/vacantes"]');
+    await contains('No hay vacantes');
+    await set('#vacancy-position', 'Soldador');
+    await page.select('#vacancy-education', 'Técnico');
+    await set('#vacancy-years', '2');
+    await set('#vacancy-required-certs', 'Trabajo en alturas');
+    await set('#vacancy-skills', 'Soldadura MIG, Lectura de planos');
+    await set('#vacancy-weight-experiencia', '15');
+    await contains('Total: 90 / 100');
+    await button('Crear vacante');
+    await page.waitForFunction(() => document.querySelector('.alert.error')?.textContent.includes('faltan 10 puntos'));
+    assert.equal((await vacancies.list()).length, 0);
+    await set('#vacancy-weight-experiencia', '25');
+    await button('Crear vacante');
+    await contains('quedó abierta');
+    await contains('v1');
+    await tableButton('Editar');
+    await contains('Editar vacante: Soldador');
+    await set('#vacancy-years', '3');
+    await button('Guardar cambios');
+    await contains('quedó en la versión 2');
+    await tableButton('Cerrar');
+    await contains('no admitirá nuevas evaluaciones');
+    await button('Cerrar vacante');
+    await contains('quedó cerrada');
+    const [vacancy] = await vacancies.list();
+    assert.equal(vacancy.estado, 'cerrada');
+    assert.equal(vacancy.version, 2);
+    assert.deepEqual(vacancy.certificacionesObligatorias, ['Trabajo en alturas']);
+    assert.deepEqual(
+      vacancy.historial.map((entry) => entry.accion),
+      ['creada', 'modificada', 'cerrada']
+    );
+    assert.equal(
+      await page.evaluate(() =>
+        [...document.querySelectorAll('table button')].some((b) => b.textContent.trim() === 'Editar')
+      ),
+      false,
+      'una vacante cerrada no muestra acciones'
+    );
+    await shot('06-vacantes.png');
+
     // HU-31 CA2: RRHH no entra a viáticos; un comercial no entra a candidatos.
     await page.goto(`${url}/viaticos/solicitudes`);
     await page.waitForFunction(() => location.pathname === '/candidatos');
@@ -199,7 +249,7 @@ async function run() {
 
     assert.deepEqual(errors, []);
     console.log(
-      'E2E_HOJASDEVIDA_OK: rol RRHH, registro, validaciones, duplicado, documentos, análisis con IA y permisos.'
+      'E2E_HOJASDEVIDA_OK: rol RRHH, registro, validaciones, duplicado, documentos, análisis con IA, vacantes y permisos.'
     );
   } finally {
     await browser.close();
