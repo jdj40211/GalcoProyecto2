@@ -1,6 +1,8 @@
 # Sprint 3 — Despliegue en la nube (HU-32)
 
-**Aplicación:** _se completa con la URL de Render después del primer despliegue_.
+**Aplicación:** https://galco-suite.onrender.com
+
+**Primer despliegue:** 10 de noviembre de 2026, desde `main`. La prueba de humo (`npm run smoke:deploy`) pasó completa contra la URL pública, y `http://` redirige a `https://`.
 
 La Suite GALCO se publica como **un solo servicio web en Render**, construido con Docker desde este repositorio. El mismo servicio entrega la API y la interfaz, y se apoya en tres servicios gestionados:
 
