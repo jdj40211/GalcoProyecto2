@@ -33,8 +33,33 @@ const experience = Joi.object({
 const certification = Joi.object({
   nombre: Joi.string().trim().min(2).max(160).required(),
   entidad: Joi.string().trim().allow('').max(160).default(''),
-  vencimiento: Joi.string().isoDate().allow('').default('')
+  // Patrón y no isoDate(): isoDate convierte "2027-03-01" en "2027-03-01T00:00:00.000Z".
+  vencimiento: Joi.string()
+    .pattern(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/)
+    .allow('')
+    .default('')
 });
+
+// Datos de contacto y de perfil: los mismos al registrar (HU-13) y al confirmar el análisis (HU-28).
+const contactFields = {
+  nombre: Joi.string().trim().min(3).max(120).required(),
+  correo: Joi.string().trim().lowercase().email().max(254).allow('').default(''),
+  telefono: Joi.string()
+    .trim()
+    .pattern(/^\+?[0-9 ()-]{7,20}$/)
+    .allow('')
+    .default('')
+    .messages({ 'string.pattern.base': 'El teléfono solo admite números, espacios, paréntesis, guiones y +.' }),
+  ciudad: Joi.string().trim().allow('').max(120).default('')
+};
+const profileFields = {
+  formacion: Joi.array().items(education).max(20).default([]),
+  experiencia: Joi.array().items(experience).max(30).default([]),
+  certificaciones: Joi.array().items(certification).max(30).default([])
+};
+const hasContact = (value, helpers) =>
+  value.correo || value.telefono ? value : helpers.message('Indica al menos un correo o un teléfono de contacto.');
+const shortList = Joi.array().items(Joi.string().trim().min(1).max(80)).max(30).default([]);
 
 const create = Joi.object({
   tipoIdentificacion: Joi.string()
@@ -45,24 +70,20 @@ const create = Joi.object({
     .pattern(/^[A-Za-z0-9.\- ]{4,30}$/)
     .required()
     .messages({ 'string.pattern.base': 'La identificación solo admite letras, números, puntos y guiones.' }),
-  nombre: Joi.string().trim().min(3).max(120).required(),
-  correo: Joi.string().trim().lowercase().email().max(254).allow('').default(''),
-  telefono: Joi.string()
-    .trim()
-    .pattern(/^\+?[0-9 ()-]{7,20}$/)
-    .allow('')
-    .default('')
-    .messages({ 'string.pattern.base': 'El teléfono solo admite números, espacios, paréntesis, guiones y +.' }),
-  ciudad: Joi.string().trim().allow('').max(120).default(''),
+  ...contactFields,
   cargoInteres: Joi.string().trim().min(2).max(120).required(),
   fuente: Joi.string().trim().allow('').max(80).default(''),
-  formacion: Joi.array().items(education).max(20).default([]),
-  experiencia: Joi.array().items(experience).max(30).default([]),
-  certificaciones: Joi.array().items(certification).max(30).default([]),
+  ...profileFields,
   autorizacionDatos: Joi.boolean().required()
-}).custom((value, helpers) =>
-  value.correo || value.telefono ? value : helpers.message('Indica al menos un correo o un teléfono de contacto.')
-);
+}).custom(hasContact);
+
+// HU-28: la identificación y el cargo de interés no los cambia el análisis.
+const analyze = Joi.object({ documentoId: Joi.string().max(80).required() });
+const confirm = Joi.object({
+  datos: Joi.object({ ...contactFields, ...profileFields, habilidades: shortList, idiomas: shortList })
+    .custom(hasContact)
+    .required()
+});
 
 // El formato y el tamaño reales se comprueban sobre los bytes en documentos.service.js.
 const document = Joi.object({
@@ -75,4 +96,4 @@ const document = Joi.object({
     .required()
 });
 
-module.exports = { ID_TYPES, create, document };
+module.exports = { ID_TYPES, create, document, analyze, confirm };

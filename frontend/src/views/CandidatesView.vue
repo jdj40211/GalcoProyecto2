@@ -268,7 +268,23 @@
               <td>{{ Math.max(1, Math.round(document.tamano / 1024)) }} KB</td>
               <td>{{ dateShort(document.cargadoEn) }} · {{ document.cargadoPor }}</td>
               <td>
-                <button class="btn btn-outline" type="button" @click="download(document)">Descargar</button>
+                <div class="button-row">
+                  <button class="btn btn-outline" type="button" @click="download(document)">Descargar</button>
+                  <button
+                    v-if="analyzable(document)"
+                    class="btn btn-outline"
+                    type="button"
+                    :disabled="Boolean(analyzing) || !selected.autorizacionDatos?.otorgada"
+                    :title="
+                      selected.autorizacionDatos?.otorgada
+                        ? 'La IA propone los datos y tú los revisas antes de guardarlos.'
+                        : 'El candidato no autorizó el tratamiento de sus datos: no se puede enviar a la IA.'
+                    "
+                    @click="analyze(document)"
+                  >
+                    {{ analyzing === document.id ? 'Analizando…' : 'Analizar con IA' }}
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -303,6 +319,7 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import BaseModal from '@/components/BaseModal.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
@@ -312,6 +329,7 @@ import { candidatosService } from '@/services/candidatos.service';
 import { useToastStore } from '@/stores/toast.store';
 
 const toast = useToastStore();
+const router = useRouter();
 const candidates = ref([]);
 const loading = ref(true);
 const saving = ref(false);
@@ -448,6 +466,23 @@ async function download(document) {
     await candidatosService.download(selected.value.id, document);
   } catch (err) {
     documentError.value = err.message;
+  }
+}
+
+// HU-28: solo PDF y DOCX se analizan; un DOC se registra a mano.
+const analyzable = (document) => document.tipo === MIME_BY_EXTENSION.pdf || document.tipo === MIME_BY_EXTENSION.docx;
+const analyzing = ref('');
+async function analyze(document) {
+  documentError.value = '';
+  analyzing.value = document.id;
+  try {
+    const analysis = await candidatosService.analyze(selected.value.id, document.id);
+    router.push(`/candidatos/${selected.value.id}/analisis/${analysis.id}`);
+  } catch (err) {
+    // Si la IA falla, el documento y los datos del candidato quedan como estaban (CA5).
+    documentError.value = err.message;
+  } finally {
+    analyzing.value = '';
   }
 }
 

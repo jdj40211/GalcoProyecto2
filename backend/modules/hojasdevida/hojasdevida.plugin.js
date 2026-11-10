@@ -2,6 +2,7 @@
 
 const service = require('./services/candidatos.service');
 const documents = require('./services/documentos.service');
+const analyses = require('./services/analisis.service');
 const schemas = require('./validators/candidato.validator');
 
 // Las hojas de vida son datos personales: solo Recursos Humanos y administración las consultan (HU-13 CA6).
@@ -20,6 +21,31 @@ module.exports = {
         method: 'GET',
         path: '/candidatos',
         options: { auth, handler: () => service.list() }
+      },
+      {
+        method: 'GET',
+        path: '/candidatos/{id}',
+        options: { auth, handler: (request) => service.get(request.params.id) }
+      },
+      {
+        method: 'POST',
+        path: '/candidatos/{id}/analisis',
+        options: {
+          auth,
+          validate: { payload: schemas.analyze, failAction },
+          handler: async (request, h) =>
+            h.response(await analyses.analyze(request.params.id, request.payload, request.auth.credentials)).code(201)
+        }
+      },
+      {
+        method: 'POST',
+        path: '/candidatos/{id}/analisis/{analisisId}/confirmar',
+        options: {
+          auth,
+          validate: { payload: schemas.confirm, options: { abortEarly: false, stripUnknown: true }, failAction },
+          handler: (request) =>
+            analyses.confirm(request.params.id, request.params.analisisId, request.payload, request.auth.credentials)
+        }
       },
       {
         method: 'POST',

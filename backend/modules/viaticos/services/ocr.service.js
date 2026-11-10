@@ -2,6 +2,7 @@
 
 const Boom = require('@hapi/boom');
 const config = require('../../../config');
+const { request, respond } = require('../../../utils/openai');
 const types = ['alimentacion', 'transporte', 'hospedaje', 'combustible', 'peajes', 'parqueadero', 'papeleria', 'otros'];
 const typeLabels = {
   alimentacion: 'Alimentación',
@@ -163,16 +164,6 @@ function decodedSize(dataUrl) {
   return Math.floor((base64.length * 3) / 4) - padding;
 }
 
-async function request(provider, url, options) {
-  try {
-    return await fetch(url, { ...options, signal: AbortSignal.timeout(config.ocr.timeoutMs) });
-  } catch (error) {
-    if (error.name === 'TimeoutError' || error.name === 'AbortError')
-      throw Boom.gatewayTimeout(`${provider} superó el tiempo máximo de ${Math.round(config.ocr.timeoutMs / 1000)} s.`);
-    throw Boom.badGateway(`No fue posible conectar con ${provider}: ${error.message}`);
-  }
-}
-
 async function demo() {
   await new Promise((resolve) => setTimeout(resolve, 450));
   return normalize({
@@ -268,49 +259,18 @@ const openaiSchema = {
   }
 };
 
-async function openaiError(response) {
-  let detail = '';
-  try {
-    detail = (await response.json()).error?.message || '';
-  } catch {
-    /* respuesta sin cuerpo JSON */
-  }
-  if (response.status === 401)
-    return Boom.badGateway('OpenAI rechazó la clave configurada. Revisa OPENAI_API_KEY en backend/.env.');
-  if (response.status === 429)
-    return Boom.badGateway(
-      `OpenAI rechazó la solicitud por límite de uso o saldo insuficiente.${detail ? ` ${detail}` : ''}`
-    );
-  return Boom.badGateway(`OpenAI respondió ${response.status}${detail ? `: ${detail}` : '.'}`);
-}
-
 async function openai(payload) {
-  if (!config.ocr.openaiKey) throw Boom.serverUnavailable('OPENAI_API_KEY no está configurada en backend/.env.');
   const attachment =
     payload.fileType === 'application/pdf'
       ? { type: 'input_file', filename: payload.fileName, file_data: payload.fileDataUrl }
       : { type: 'input_image', image_url: payload.fileDataUrl, detail: 'high' };
-  const response = await request('OpenAI', 'https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${config.ocr.openaiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: config.ocr.openaiModel,
-      instructions: openaiInstructions,
-      store: false,
-      input: [
-        { role: 'user', content: [{ type: 'input_text', text: 'Extrae los datos de este comprobante.' }, attachment] }
-      ],
-      text: { format: { type: 'json_schema', name: 'comprobante', strict: true, schema: openaiSchema } }
-    })
+  const text = await respond({
+    instructions: openaiInstructions,
+    content: [{ type: 'input_text', text: 'Extrae los datos de este comprobante.' }, attachment],
+    name: 'comprobante',
+    schema: openaiSchema,
+    subject: 'el comprobante'
   });
-  if (!response.ok) throw await openaiError(response);
-  const body = await response.json();
-  const content = (body.output || []).filter((item) => item.type === 'message').flatMap((item) => item.content || []);
-  const refusal = content.find((item) => item.type === 'refusal');
-  if (refusal) throw Boom.badGateway(`OpenAI no procesó el comprobante: ${refusal.refusal}`);
-  const text = body.output_text || content.find((item) => item.type === 'output_text')?.text;
-  if (body.status === 'incomplete' || !text)
-    throw Boom.badGateway('OpenAI no devolvió una respuesta completa. Intenta de nuevo.');
   return normalize(extractJson(text));
 }
 

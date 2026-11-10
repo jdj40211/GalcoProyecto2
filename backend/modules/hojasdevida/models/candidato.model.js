@@ -18,6 +18,11 @@ const schema = new mongoose.Schema(
     certificaciones: { type: [mongoose.Schema.Types.Mixed], default: [] },
     // Solo la metadata; el archivo vive en GridFS (bucket documentosCandidatos), referido por archivoId.
     documentos: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    habilidades: { type: [String], default: [] },
+    idiomas: { type: [String], default: [] },
+    anosExperiencia: { type: Number, default: 0 },
+    // Propuestas de la IA (HU-28) con su estado, correcciones y quién las confirmó.
+    analisis: { type: [mongoose.Schema.Types.Mixed], default: [] },
     autorizacionDatos: {
       otorgada: { type: Boolean, required: true },
       fecha: { type: Date, default: null },
