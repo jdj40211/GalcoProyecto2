@@ -33,7 +33,11 @@ const experience = Joi.object({
 const certification = Joi.object({
   nombre: Joi.string().trim().min(2).max(160).required(),
   entidad: Joi.string().trim().allow('').max(160).default(''),
-  vencimiento: Joi.string().isoDate().allow('').default('')
+  // Patrón y no isoDate(): isoDate convierte "2027-03-01" en "2027-03-01T00:00:00.000Z".
+  vencimiento: Joi.string()
+    .pattern(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/)
+    .allow('')
+    .default('')
 });
 
 const create = Joi.object({
