@@ -68,4 +68,15 @@ const create = Joi.object({
   value.correo || value.telefono ? value : helpers.message('Indica al menos un correo o un teléfono de contacto.')
 );
 
-module.exports = { ID_TYPES, create };
+// El formato y el tamaño reales se comprueban sobre los bytes en documentos.service.js.
+const document = Joi.object({
+  nombre: Joi.string().trim().min(1).max(255).required(),
+  tipo: Joi.string().max(120).required(),
+  tipoDocumento: Joi.string().valid('hoja_de_vida', 'soporte').default('hoja_de_vida'),
+  fileDataUrl: Joi.string()
+    .allow('')
+    .max(15 * 1024 * 1024)
+    .required()
+});
+
+module.exports = { ID_TYPES, create, document };

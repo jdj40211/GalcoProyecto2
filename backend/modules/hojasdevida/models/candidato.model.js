@@ -16,6 +16,8 @@ const schema = new mongoose.Schema(
     formacion: { type: [mongoose.Schema.Types.Mixed], default: [] },
     experiencia: { type: [mongoose.Schema.Types.Mixed], default: [] },
     certificaciones: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    // Solo la metadata; el archivo vive en GridFS (bucket documentosCandidatos), referido por archivoId.
+    documentos: { type: [mongoose.Schema.Types.Mixed], default: [] },
     autorizacionDatos: {
       otorgada: { type: Boolean, required: true },
       fecha: { type: Date, default: null },
