@@ -46,7 +46,7 @@ jobs:
         run: npm run audit:prod
       - name: Conservar capturas de las pruebas de navegador
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: evidencias-navegador
           path: |
