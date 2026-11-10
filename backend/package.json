@@ -22,7 +22,7 @@
     "handlebars": "4.7.10",
     "joi": "17.13.9",
     "mongodb": "7.2.0",
-    "mongoose": "8.24.4",
+    "mongoose": "8.24.8",
     "puppeteer": "25.17.0"
   }
 }

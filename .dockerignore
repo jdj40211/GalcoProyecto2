@@ -1,0 +1,15 @@
+# Nada de secretos, dependencias locales ni archivos que no necesita la imagen.
+.git
+.github
+**/node_modules
+**/.env
+**/.env.local
+**/*firebase-adminsdk*.json
+**/*service-account*.json
+frontend/dist
+docs
+tmp
+coverage
+backend/tests
+backend/scripts/e2e-*.js
+*.md

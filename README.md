@@ -92,6 +92,18 @@ conserva alertas moderadas transitivas de Firebase Admin; su actualización mayo
 y las pruebas con servicios reales quedan registradas como deuda. El control de
 auditoría bloquea alertas altas y críticas.
 
+## Aplicación desplegada
+
+**URL:** _se completa después del primer despliegue en Render_.
+
+La aplicación corre en Render (Docker) con MongoDB Atlas, Firebase Authentication y OpenAI. El proceso completo,
+las variables de entorno, la verificación y la reversión están en
+[Sprint 3 — Despliegue](docs/wiki/29-Sprint-3-Despliegue.md). Después de cada despliegue:
+
+```bash
+npm run smoke:deploy -- https://<servicio>.onrender.com
+```
+
 ## Configuración productiva
 
 Copiar los archivos `.env.example` de frontend y backend y configurar:
@@ -100,6 +112,8 @@ Copiar los archivos `.env.example` de frontend y backend y configurar:
 - MongoDB para persistencia;
 - proveedor OCR autorizado;
 - HTTPS y almacenamiento privado para soportes.
+
+En la nube, la configuración se hace en Render como explica la guía de despliegue; no se usan archivos `.env`.
 
 ## Documentación de Sprint 1
 
