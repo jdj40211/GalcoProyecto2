@@ -109,9 +109,12 @@
             <td>v{{ item.version }}</td>
             <td><StatusBadge :status="item.estado" /></td>
             <td>
-              <div v-if="item.estado === 'abierta'" class="button-row">
-                <button class="btn btn-outline" type="button" @click="startEdit(item)">Editar</button>
-                <button class="btn btn-outline" type="button" @click="closing = item">Cerrar</button>
+              <div class="button-row">
+                <RouterLink class="btn btn-outline" :to="`/vacantes/${item.id}/ranking`">Ranking</RouterLink>
+                <template v-if="item.estado === 'abierta'">
+                  <button class="btn btn-outline" type="button" @click="startEdit(item)">Editar</button>
+                  <button class="btn btn-outline" type="button" @click="closing = item">Cerrar</button>
+                </template>
               </div>
             </td>
           </tr>

@@ -217,6 +217,37 @@ async function run() {
     await set('#vacancy-years', '3');
     await button('Guardar cambios');
     await contains('quedó en la versión 2');
+
+    // HU-30: evaluar a la candidata del flujo, ver el ranking, el detalle y el filtro.
+    const rankingLink = 'a[href^="/vacantes/"][href$="/ranking"]';
+    await page.click(rankingLink);
+    await contains('Ranking: Soldador');
+    await contains('Sin candidatos evaluados');
+    const [person] = await candidates.list();
+    await page.select('#ranking-candidate', person.id);
+    await button('Evaluar');
+    await contains('Evaluación con');
+    await contains('Ana María Pérez Gómez');
+    const [evaluated] = await candidates.list();
+    const [evaluation] = evaluated.evaluaciones;
+    assert.equal(evaluation.vigente, true);
+    assert.equal(evaluation.vacanteVersion, 2);
+    assert.equal(evaluated.estado, 'registrado', 'evaluar no cambia la etapa');
+    assert.ok(
+      evaluation.puntaje > 0 && evaluation.cumpleObligatorios,
+      JSON.stringify(evaluation.obligatoriosIncumplidos)
+    );
+    await contains(`${evaluation.puntaje} / 100`);
+    await page.select('#ranking-filter', 'true');
+    await contains('1 candidato(s)');
+    await button('Ver detalle');
+    await contains('Justificación');
+    await contains('Nivel más alto');
+    await shot('07-ranking-detalle.png');
+    await page.click('.modal .modal-actions .btn-outline:last-child');
+    await page.waitForFunction(() => !document.querySelector('.modal'));
+    await page.click('a[href="/vacantes"]');
+    await contains('Crear vacante');
     await tableButton('Cerrar');
     await contains('no admitirá nuevas evaluaciones');
     await button('Cerrar vacante');
@@ -237,6 +268,10 @@ async function run() {
       'una vacante cerrada no muestra acciones'
     );
     await shot('06-vacantes.png');
+    // HU-29 CP-03: el ranking de una vacante cerrada se consulta, pero no admite evaluar.
+    await page.click(rankingLink);
+    await contains('no admite nuevas evaluaciones');
+    assert.equal(await page.$eval('#ranking-candidate', (element) => element.disabled), true);
 
     // HU-31 CA2: RRHH no entra a viáticos; un comercial no entra a candidatos.
     await page.goto(`${url}/viaticos/solicitudes`);
@@ -249,7 +284,7 @@ async function run() {
 
     assert.deepEqual(errors, []);
     console.log(
-      'E2E_HOJASDEVIDA_OK: rol RRHH, registro, validaciones, duplicado, documentos, análisis con IA, vacantes y permisos.'
+      'E2E_HOJASDEVIDA_OK: rol RRHH, registro, validaciones, duplicado, documentos, análisis con IA, vacantes, ranking y permisos.'
     );
   } finally {
     await browser.close();
