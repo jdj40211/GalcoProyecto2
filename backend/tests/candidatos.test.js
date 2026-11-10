@@ -54,6 +54,8 @@ test('CA4 y CA5: registra el candidato con fecha, responsable, estado Registrado
   assert.equal(item.autorizacionDatos.registradaPor, 'mrestrepo');
   assert.ok(!Number.isNaN(Date.parse(item.autorizacionDatos.fecha)));
   assert.equal(item.formacion.length, 1);
+  // La fecha se guarda tal como llega, sin convertirla a fecha con hora.
+  assert.equal(item.certificaciones[0].vencimiento, '2027-03-01');
 
   const list = await call('GET', '/api/candidatos');
   assert.equal(list.statusCode, 200);
