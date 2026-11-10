@@ -4,8 +4,8 @@
  * Administra los usuarios de Firebase Authentication y su rol.
  * Ejecutar desde backend/:
  *
- *   node scripts/usuarios.js crear <usuario> "<Nombre completo>" <comercial|contabilidad>
- *   node scripts/usuarios.js rol <usuario> <comercial|contabilidad>
+ *   node scripts/usuarios.js crear <usuario> "<Nombre completo>" <comercial|contabilidad|rrhh|admin>
+ *   node scripts/usuarios.js rol <usuario> <comercial|contabilidad|rrhh|admin>
  *   node scripts/usuarios.js clave <usuario>
  *   node scripts/usuarios.js desactivar <usuario>
  *   node scripts/usuarios.js activar <usuario>
@@ -26,7 +26,7 @@ process.chdir(path.join(__dirname, '..'));
 const config = require('../config');
 const firebase = require('../utils/firebase');
 
-const ROLES = ['comercial', 'contabilidad'];
+const ROLES = ['comercial', 'contabilidad', 'rrhh', 'admin'];
 
 const emailOf = (usuario) => (usuario.includes('@') ? usuario : `${usuario}@${config.auth.emailDomain}`);
 // Clave aleatoria que nadie ve: solo bloquea la cuenta hasta que la persona use su enlace.

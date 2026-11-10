@@ -7,7 +7,7 @@ import { clearActivity, idleLimitMs, isIdleExpired, readActivity, recordActivity
 const SESSION_KEY = 'galco.viaticos.session';
 const demo = !isFirebaseConfigured || import.meta.env.VITE_AUTH_BYPASS === 'true';
 const sessionApi = axios.create({ baseURL: import.meta.env.VITE_API_BASE || '/api' });
-const ROLES = ['admin', 'comercial', 'contabilidad'];
+const ROLES = ['admin', 'comercial', 'contabilidad', 'rrhh'];
 const devMode = () => !isFirebaseConfigured || import.meta.env.VITE_AUTH_BYPASS === 'true';
 
 const loginErrors = {
@@ -29,8 +29,9 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: (state) => Boolean(state.user),
     isAccounting: (state) => state.user?.rol === 'contabilidad',
     isCommercial: (state) => state.user?.rol === 'comercial',
+    isHumanResources: (state) => state.user?.rol === 'rrhh',
     home: (state) =>
-      state.user?.rol === 'admin' ? '/usuarios' : state.user?.rol === 'contabilidad' ? '/contabilidad' : '/carga'
+      ({ admin: '/usuarios', contabilidad: '/contabilidad', rrhh: '/candidatos' })[state.user?.rol] || '/carga'
   },
   actions: {
     async setFirebaseUser(fbUser) {

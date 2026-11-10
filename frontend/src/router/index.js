@@ -13,6 +13,11 @@ const routes = [
     meta: { roles: ['admin'], title: 'Administrar usuarios' }
   },
   {
+    path: '/candidatos',
+    component: () => import('@/views/CandidatesView.vue'),
+    meta: { roles: ['rrhh', 'admin'], title: 'Candidatos' }
+  },
+  {
     path: '/cotizador/:id/editar',
     component: () => import('@/views/QuoteVariantView.vue'),
     meta: { roles: ['comercial', 'contabilidad'], title: 'Editar variante' }

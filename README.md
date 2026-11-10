@@ -73,6 +73,7 @@ Usuarios demo:
 
 - Comercial: `jdiaz` / `1234`
 - Contabilidad: `acastro` / `conta2024`
+- Recursos Humanos: `mrestrepo` / `Rrhh2026!`
 
 No habilitar el modo demo en producción.
 
