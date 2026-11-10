@@ -4,7 +4,7 @@ const Boom = require('@hapi/boom');
 const config = require('../config');
 const firebase = require('../utils/firebase');
 
-const ROLES = ['admin', 'comercial', 'contabilidad', 'consulta'];
+const ROLES = ['admin', 'comercial', 'contabilidad', 'consulta', 'rrhh'];
 
 function devCredentials(request) {
   try {

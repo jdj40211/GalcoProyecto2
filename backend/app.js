@@ -81,7 +81,7 @@ async function createServer() {
     handler: () => ({
       ok: true,
       service: 'galco-suite',
-      modules: ['viaticos', 'cotizador'],
+      modules: ['viaticos', 'cotizador', 'hojasdevida'],
       persistence: config.persistence.mode,
       time: new Date().toISOString()
     })
@@ -91,6 +91,7 @@ async function createServer() {
   server.route(require('./modules/usuarios.routes'));
   await server.register(require('./modules/viaticos/viaticos.plugin'), { routes: { prefix: '/api' } });
   await server.register(require('./modules/cotizador/cotizador.plugin'), { routes: { prefix: '/api' } });
+  await server.register(require('./modules/hojasdevida/hojasdevida.plugin'), { routes: { prefix: '/api' } });
   await registerFrontend(server);
   return server;
 }

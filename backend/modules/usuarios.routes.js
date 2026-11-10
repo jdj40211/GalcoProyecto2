@@ -38,7 +38,7 @@ module.exports = [
           nombre: Joi.string().trim().min(2).max(120).required(),
           email: Joi.string().email().lowercase().required(),
           password: Joi.string().min(12).max(128).required(),
-          rol: Joi.string().valid('comercial', 'contabilidad', 'admin').required()
+          rol: Joi.string().valid('comercial', 'contabilidad', 'rrhh', 'admin').required()
         })
       }
     },

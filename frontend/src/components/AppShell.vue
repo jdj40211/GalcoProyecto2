@@ -40,33 +40,37 @@ import { startIdleWatch } from '@/services/session';
 
 const auth = useAuthStore();
 const router = useRouter();
+const humanResources = [{ section: 'HOJAS DE VIDA' }, { to: '/candidatos', label: 'Candidatos', icon: 'fa-id-card' }];
 const navigation = computed(() =>
   auth.user?.rol === 'admin'
-    ? [{ section: 'ADMINISTRACIÓN' }, { to: '/usuarios', label: 'Usuarios', icon: 'fa-users' }]
-    : [
-        { section: 'VIÁTICOS' },
-        { to: '/viaticos/solicitudes', label: 'Solicitudes de viaje', icon: 'fa-route' },
-        { to: '/notificaciones', label: 'Notificaciones', icon: 'fa-bell' },
-        ...(auth.isAccounting
-          ? [
-              { to: '/contabilidad', label: 'Panel de contabilidad', icon: 'fa-briefcase' },
-              { to: '/dashboard', label: 'Dashboard', icon: 'fa-chart-pie' }
-            ]
-          : [
-              { to: '/viaticos/legalizacion', label: 'Legalizar viaje', icon: 'fa-check-double' },
-              { to: '/carga', label: 'Subir comprobante', icon: 'fa-cloud-upload-alt' },
-              { to: '/validacion', label: 'Validar datos', icon: 'fa-check-circle' },
-              { to: '/historial', label: 'Historial', icon: 'fa-history' }
-            ]),
-        { section: 'COTIZADOR' },
-        { to: '/cotizador/catalogo', label: 'Catálogo de postes', icon: 'fa-list' },
-        { to: '/cotizador', label: 'Nueva cotización', icon: 'fa-calculator' },
-        { to: '/cotizador/historial', label: 'Historial de cotizaciones', icon: 'fa-clock-rotate-left' },
-        { to: '/cotizador/indicadores', label: 'Indicadores', icon: 'fa-chart-line' }
-      ]
+    ? [{ section: 'ADMINISTRACIÓN' }, { to: '/usuarios', label: 'Usuarios', icon: 'fa-users' }, ...humanResources]
+    : auth.isHumanResources
+      ? humanResources
+      : [
+          { section: 'VIÁTICOS' },
+          { to: '/viaticos/solicitudes', label: 'Solicitudes de viaje', icon: 'fa-route' },
+          { to: '/notificaciones', label: 'Notificaciones', icon: 'fa-bell' },
+          ...(auth.isAccounting
+            ? [
+                { to: '/contabilidad', label: 'Panel de contabilidad', icon: 'fa-briefcase' },
+                { to: '/dashboard', label: 'Dashboard', icon: 'fa-chart-pie' }
+              ]
+            : [
+                { to: '/viaticos/legalizacion', label: 'Legalizar viaje', icon: 'fa-check-double' },
+                { to: '/carga', label: 'Subir comprobante', icon: 'fa-cloud-upload-alt' },
+                { to: '/validacion', label: 'Validar datos', icon: 'fa-check-circle' },
+                { to: '/historial', label: 'Historial', icon: 'fa-history' }
+              ]),
+          { section: 'COTIZADOR' },
+          { to: '/cotizador/catalogo', label: 'Catálogo de postes', icon: 'fa-list' },
+          { to: '/cotizador', label: 'Nueva cotización', icon: 'fa-calculator' },
+          { to: '/cotizador/historial', label: 'Historial de cotizaciones', icon: 'fa-clock-rotate-left' },
+          { to: '/cotizador/indicadores', label: 'Indicadores', icon: 'fa-chart-line' }
+        ]
 );
-const roleName = computed(() =>
-  auth.user?.rol === 'admin' ? 'Administración' : auth.isAccounting ? 'Contabilidad' : 'Comercial'
+const roleName = computed(
+  () =>
+    ({ admin: 'Administración', contabilidad: 'Contabilidad', rrhh: 'Recursos Humanos' })[auth.user?.rol] || 'Comercial'
 );
 const initials = computed(() =>
   (auth.user?.nombre || 'U')

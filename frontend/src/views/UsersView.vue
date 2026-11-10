@@ -26,6 +26,7 @@
         ><select id="user-role" v-model="form.rol">
           <option value="comercial">Comercial / solicitante</option>
           <option value="contabilidad">Contabilidad / aprobador</option>
+          <option value="rrhh">Recursos Humanos</option>
           <option value="admin">Administración</option>
         </select>
       </div>

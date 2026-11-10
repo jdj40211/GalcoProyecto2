@@ -24,7 +24,7 @@ test('la suite publica ambos módulos y completa el flujo del cotizador', async 
   t.after(() => server.stop());
 
   const health = await server.inject({ method: 'GET', url: '/api/health' });
-  assert.deepEqual(JSON.parse(health.payload).modules, ['viaticos', 'cotizador']);
+  assert.deepEqual(JSON.parse(health.payload).modules, ['viaticos', 'cotizador', 'hojasdevida']);
 
   const catalog = await server.inject({ method: 'GET', url: '/api/cotizador/catalogos', headers: headers(commercial) });
   assert.equal(catalog.statusCode, 200);

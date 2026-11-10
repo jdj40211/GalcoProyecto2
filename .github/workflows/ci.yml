@@ -52,3 +52,4 @@ jobs:
           path: |
             tmp/e2e-sprint1/
             docs/evidencias/sprint-2/ui/
+            docs/evidencias/sprint-3/ui/

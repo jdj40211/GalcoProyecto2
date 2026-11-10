@@ -23,8 +23,17 @@ export const statuses = {
   pendiente: { label: 'Pendiente', tone: 'warning', icon: 'fa-clock' },
   confirmado: { label: 'Confirmado', tone: 'success', icon: 'fa-circle-check' },
   procesado: { label: 'Procesado', tone: 'info', icon: 'fa-file-export' },
-  error: { label: 'Con error', tone: 'warning', icon: 'fa-triangle-exclamation' }
+  error: { label: 'Con error', tone: 'warning', icon: 'fa-triangle-exclamation' },
+  registrado: { label: 'Registrado', tone: 'info', icon: 'fa-user-plus' }
 };
+
+// Tipos de documento de identidad de un candidato; el backend valida la misma lista.
+export const idTypes = [
+  { id: 'CC', nombre: 'Cédula de ciudadanía' },
+  { id: 'CE', nombre: 'Cédula de extranjería' },
+  { id: 'PA', nombre: 'Pasaporte' },
+  { id: 'PPT', nombre: 'Permiso por protección temporal' }
+];
 
 // Estados de una cotización. Las decisiones que Contabilidad registra a mano desde el historial;
 // "Enviada" solo la marca el envío por correo confirmado. El backend valida las mismas reglas.

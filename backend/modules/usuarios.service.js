@@ -15,6 +15,7 @@ function seed() {
     ['lgomez', 'Laura Gómez', '1234', 'comercial'],
     ['crueda', 'Carlos Rueda', '1234', 'comercial'],
     ['acastro', 'Andrés Castro', 'conta2024', 'contabilidad'],
+    ['mrestrepo', 'María Restrepo', 'Rrhh2026!', 'rrhh'],
     ['admin', 'Administrador demo', 'AdminDemo2026!', 'admin']
   ]) {
     const salt = crypto.randomBytes(16).toString('hex');
