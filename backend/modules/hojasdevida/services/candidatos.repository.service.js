@@ -64,6 +64,30 @@ module.exports = {
     const item = memory.find((entry) => entry.id === id);
     item.analisis = [...(item.analisis || []), clone(analysis)].slice(-keep);
   },
+  // HU-30: la evaluación nueva queda vigente y las anteriores para la misma vacante se conservan.
+  async addEvaluation(id, evaluation) {
+    if (config.persistence.mode === 'mongo') {
+      await Candidato.updateOne(
+        { _id: id },
+        { $set: { 'evaluaciones.$[previous].vigente': false } },
+        { arrayFilters: [{ 'previous.vacanteId': evaluation.vacanteId }] }
+      );
+      await Candidato.updateOne({ _id: id }, { $push: { evaluaciones: evaluation } });
+      return;
+    }
+    const item = memory.find((entry) => entry.id === id);
+    item.evaluaciones = [
+      ...(item.evaluaciones || []).map((entry) =>
+        entry.vacanteId === evaluation.vacanteId ? { ...entry, vigente: false } : entry
+      ),
+      clone(evaluation)
+    ];
+  },
+  async listEvaluated(vacancyId) {
+    if (config.persistence.mode === 'mongo')
+      return (await Candidato.find({ 'evaluaciones.vacanteId': vacancyId })).map((item) => item.toJSON());
+    return clone(memory.filter((item) => (item.evaluaciones || []).some((entry) => entry.vacanteId === vacancyId)));
+  },
   // Aplica los datos confirmados y cierra el análisis en una sola operación: un segundo intento sobre
   // el mismo análisis no encuentra nada pendiente y devuelve null.
   async confirmAnalysis(id, analysisId, changes, analysisPatch) {

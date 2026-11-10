@@ -3,7 +3,9 @@
 const service = require('./services/candidatos.service');
 const documents = require('./services/documentos.service');
 const analyses = require('./services/analisis.service');
+const Joi = require('joi');
 const vacancies = require('./services/vacantes.service');
+const evaluations = require('./services/evaluaciones.service');
 const schemas = require('./validators/candidato.validator');
 const vacancySchemas = require('./validators/vacante.validator');
 
@@ -49,6 +51,28 @@ module.exports = {
         method: 'POST',
         path: '/vacantes/{id}/cerrar',
         options: { auth, handler: (request) => vacancies.close(request.params.id, request.auth.credentials) }
+      },
+      // HU-30: evaluación del candidato frente a la vacante y ranking.
+      {
+        method: 'POST',
+        path: '/vacantes/{id}/evaluaciones',
+        options: {
+          auth,
+          validate: { payload: Joi.object({ candidatoId: Joi.string().max(80).required() }), failAction },
+          handler: async (request, h) =>
+            h
+              .response(await evaluations.evaluate(request.params.id, request.payload, request.auth.credentials))
+              .code(201)
+        }
+      },
+      {
+        method: 'GET',
+        path: '/vacantes/{id}/ranking',
+        options: {
+          auth,
+          validate: { query: Joi.object({ soloCumplen: Joi.boolean().default(false) }), failAction },
+          handler: (request) => evaluations.ranking(request.params.id, request.query)
+        }
       },
       {
         method: 'GET',

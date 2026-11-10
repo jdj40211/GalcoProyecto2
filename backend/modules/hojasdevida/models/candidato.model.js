@@ -23,6 +23,8 @@ const schema = new mongoose.Schema(
     anosExperiencia: { type: Number, default: 0 },
     // Propuestas de la IA (HU-28) con su estado, correcciones y quién las confirmó.
     analisis: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    // Evaluaciones frente a vacantes (HU-30), cada una con la copia de la vacante y si está vigente.
+    evaluaciones: { type: [mongoose.Schema.Types.Mixed], default: [] },
     autorizacionDatos: {
       otorgada: { type: Boolean, required: true },
       fecha: { type: Date, default: null },
