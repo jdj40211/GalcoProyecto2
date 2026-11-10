@@ -56,7 +56,18 @@ npm run install:all
 npm run dev
 ```
 
-Abrir `http://localhost:3000`. El modo local utiliza persistencia en memoria, autenticación demo y OCR simulado, por lo que no requiere cuentas externas.
+Abrir `http://localhost:5173` (interfaz de Vite; la API corre en el puerto 3000 y Vite le reenvía `/api`).
+Con la configuración de los archivos `.env.example`, el modo local utiliza persistencia en memoria, autenticación
+demo y OCR simulado, por lo que no requiere cuentas externas.
+
+Para probar la aplicación integrada, con la API sirviendo también la interfaz compilada como en un despliegue:
+
+```bash
+npm run preview
+```
+
+Abrir `http://localhost:3000`. `npm run start` hace lo mismo con `NODE_ENV=production`, que exige
+`AUTH_BYPASS=false` y la configuración real de Firebase.
 
 Usuarios demo:
 
