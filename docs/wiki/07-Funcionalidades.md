@@ -1,6 +1,8 @@
 # 07 · Funcionalidades del sistema
 
 > Página principal para la sustentación del bloque de funcionalidades.
+>
+> Esta página conserva la visión funcional del Sprint 0. Lo que quedó construido al cierre del Sprint 3 está en la columna **Estado** de la [tabla resumen](#tabla-resumen-de-funcionalidades) y en las notas marcadas como *Estado Sprint 3*.
 
 ---
 
@@ -59,6 +61,8 @@ Cada producto incluye: **referencia, descripción técnica, dimensiones, unidad 
 ### F1.3 — Enviar al cliente `Release 2`
 
 Genera un **PDF con la identidad de marca GALCO** y lo envía por correo desde el sistema, sin salir a Outlook ni a WhatsApp. Queda registro de a quién se envió, cuándo y con qué contenido exacto.
+
+> *Estado Sprint 3:* el PDF se genera y se descarga desde el historial. El envío por correo desde el sistema se **descartó** por decisión del equipo (HU-33, #71).
 
 ### F1.4 — Ver estado `Release 3`
 
@@ -128,6 +132,8 @@ El empleado toma **foto del recibo con la cámara del celular** y queda adjunto 
 
 El aprobador recibe **notificación por correo o WhatsApp**, ve la solicitud con sus soportes y aprueba o rechaza con un comentario. Todo queda con fecha, hora y responsable.
 
+> *Estado Sprint 3:* la aprobación y el rechazo con motivo están implementados; las notificaciones son internas, dentro de la aplicación, no por correo ni WhatsApp.
+
 **Estados visibles:** Borrador → Enviada → Aprobada / Rechazada → Liquidada.
 
 **Qué elimina:** el costo de USD 58 y 20 minutos por reporte de gastos procesado manualmente, según la GBTA Foundation.
@@ -144,29 +150,31 @@ Consolidado para Contabilidad: **viáticos por período, por centro de costo, po
 |---|---|
 | **Login único con control de roles** | Un solo usuario y contraseña. Cada persona ve únicamente los módulos de su rol (comercial, RRHH, contabilidad, aprobador). |
 | **Dashboard con indicadores** | Pantalla de entrada con KPI del mes y tabla de actividad reciente. |
-| **Notificaciones** | Correo y WhatsApp para eventos que requieren acción: cotización por vencer, viático pendiente de aprobación, candidato nuevo. |
-| **Acceso móvil real** | Web responsive y app móvil para registrar viáticos y consultar cotizaciones en campo. |
+| **Notificaciones** | Correo y WhatsApp para eventos que requieren acción: cotización por vencer, viático pendiente de aprobación, candidato nuevo. *Estado Sprint 3: notificaciones internas en la aplicación para viáticos; sin correo ni WhatsApp.* |
+| **Acceso móvil real** | Web responsive y app móvil para registrar viáticos y consultar cotizaciones en campo. *Estado Sprint 3: web responsive; sin app nativa ([09](09-Stack-tecnologico.md)).* |
 | **Trazabilidad completa** | Toda acción queda registrada con usuario, fecha y hora. |
-| **Integración DIAN** | Facturación electrónica desde la cotización aprobada. |
+| **Integración DIAN** | Facturación electrónica desde la cotización aprobada. *Estado Sprint 3: no implementada.* |
 
 ---
 
 ## Tabla resumen de funcionalidades
 
-| # | Funcionalidad | Módulo | Usuario | Release |
-|---|---|---|---|---|
-| F1.1 | Crear cotización | Cotizador | Comercial | 1 |
-| F1.2 | Consultar catálogo | Cotizador | Comercial | 2 |
-| F1.3 | Enviar al cliente | Cotizador | Comercial | 2 |
-| F1.4 | Ver estado | Cotizador | Comercial | 3 |
-| F2.1 | Registrar candidato | Hojas de vida | RRHH / Admin | 1 |
-| F2.2 | Buscar candidatos | Hojas de vida | RRHH / Admin | 2 |
-| F2.3 | Actualizar hoja de vida | Hojas de vida | RRHH / Empleado | 2 |
-| F2.4 | Reporte de personal | Hojas de vida | RRHH / Gerencia | 3 |
-| F3.1 | Registrar solicitud | Viáticos | Empleado | 1 |
-| F3.2 | Adjuntar soportes | Viáticos | Empleado | 2 |
-| F3.3 | Aprobar / rechazar | Viáticos | Aprobador | 2 |
-| F3.4 | Reporte contable | Viáticos | Contabilidad | 3 |
+| # | Funcionalidad | Módulo | Usuario | Release | Estado al cierre del Sprint 3 |
+|---|---|---|---|---|---|
+| F1.1 | Crear cotización | Cotizador | Comercial | 1 | Implementada |
+| F1.2 | Consultar catálogo | Cotizador | Comercial | 2 | Implementada |
+| F1.3 | Enviar al cliente | Cotizador | Comercial | 2 | PDF descargable; envío por correo descartado (#71) |
+| F1.4 | Ver estado | Cotizador | Comercial | 3 | Implementada con borrador, aprobada, rechazada y anulada; historial e indicadores |
+| F2.1 | Registrar candidato | Hojas de vida | RRHH / Admin | 1 | Implementada (HU-13), también desde la hoja de vida con IA (HU-34) |
+| F2.2 | Buscar candidatos | Hojas de vida | RRHH / Admin | 2 | En el backlog (HU-15) |
+| F2.3 | Actualizar hoja de vida | Hojas de vida | RRHH / Empleado | 2 | En el backlog |
+| F2.4 | Reporte de personal | Hojas de vida | RRHH / Gerencia | 3 | En el backlog |
+| F3.1 | Registrar solicitud | Viáticos | Empleado | 1 | Implementada |
+| F3.2 | Adjuntar soportes | Viáticos | Empleado | 2 | Implementada, con OCR y revisión humana |
+| F3.3 | Aprobar / rechazar | Viáticos | Aprobador | 2 | Implementada |
+| F3.4 | Reporte contable | Viáticos | Contabilidad | 3 | Implementada (tablero y exportación TXT) |
+
+Agregadas en el Sprint 3, fuera de la visión inicial: análisis de la hoja de vida con IA confirmado por RRHH (HU-28), vacantes con criterios y pesos (HU-29) y evaluación con ranking (HU-30). Detalle en [30 · Alcance y trazabilidad del Sprint 3](30-Sprint-3-Alcance-y-trazabilidad.md).
 
 ---
 
