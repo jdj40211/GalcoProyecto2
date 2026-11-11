@@ -11,3 +11,15 @@
 - Riesgos: cuenta de GitHub Actions bloqueada; plan gratuito de Render/Atlas; dependencia de OpenAI; tratamiento de datos de candidatos.
 - Compromisos/responsables/fecha: PENDIENTE
 - Enlace o ruta de evidencia: PENDIENTE
+
+## Reparto de roles propuesto
+
+Propuesta compartida en el grupo de WhatsApp del equipo el 9 de noviembre de 2026, con 5 personas (no hay otro registro en el repositorio). El nombre de cada responsable lo completa el equipo.
+
+| Persona | Rol                          | Entregable principal                                                                               | Peso en la nota                    | Responsable |
+| ------- | ---------------------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------- | ----------- |
+| 1       | Desarrollo (backend, líder)  | Historias de usuario del Sprint 3, uso de Git, pruebas automáticas del backend                     | Desarrollo (20)                    | PENDIENTE   |
+| 2       | Desarrollo (frontend)        | Interfaz, ajustes de usabilidad, casos de prueba del Sprint 3, pruebas del frontend                | Desarrollo (20)                    | PENDIENTE   |
+| 3       | DevOps y despliegue          | Despliegue en nube pública, documentación en la Wiki, enlace en la Wiki y el README                | Despliegue (10)                    | PENDIENTE   |
+| 4       | Usabilidad                   | Pruebas con usuarios reales según el protocolo del Sprint 2, resultados y ajustes para un Sprint 4 | Usabilidad (20)                    | PENDIENTE   |
+| 5       | Scrum Master y documentación | Caso de negocio final, backlog al día, evidencias de ceremonias, manual de usuario                 | Caso de negocio (10) y Manual (20) | PENDIENTE   |

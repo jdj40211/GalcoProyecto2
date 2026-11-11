@@ -88,7 +88,7 @@ Las configuraciones **Inactivas** se ven, pero no se pueden cotizar.
 
 ### 2.3 Historial, variantes y estados
 
-Menú **Historial de cotizaciones** (para Comercial se llama **Mis cotizaciones**: solo ve las suyas).
+Menú **Historial de cotizaciones** (para Comercial la pantalla se titula **Mis cotizaciones**: solo ve las suyas).
 
 - Filtre por cliente o estado.
 - **PDF:** descarga el PDF de esa cotización.
@@ -151,7 +151,7 @@ La lectura automática **propone** los datos; usted es responsable de confirmarl
 
 ### 3.1 Aprobar o rechazar solicitudes de viaje
 
-1. Menú **Solicitudes de viaje** (para Contabilidad se llama **Solicitudes por aprobar**).
+1. Menú **Solicitudes de viaje** (para Contabilidad la pantalla se titula **Solicitudes por aprobar**).
 2. Revise destino, fechas, motivo y total.
 3. Use **Aprobar solicitud** o **Rechazar solicitud**. Al rechazar, escriba un motivo claro: el solicitante lo verá en sus notificaciones.
 
