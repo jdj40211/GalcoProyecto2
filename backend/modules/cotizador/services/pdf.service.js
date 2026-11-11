@@ -32,25 +32,51 @@ function getTemplate() {
   return compiled;
 }
 
+const percent = (value) => `${Number(value).toLocaleString('es-CO', { maximumFractionDigits: 2 })}%`;
+
+// Bug #63: la nota describe la estructura de AIU con la que se calculó la cotización. Las nuevas usan
+// cuatro rubros (calculos.service.js); las anteriores a P0.2 conservan los dos rubros del Excel v3.
+// La MO interna no se menciona porque hoy su costo es $0 y no cambia el precio.
+function notaAIU(parametros = {}) {
+  if (parametros.aiuMateriales != null)
+    return (
+      `Precios calculados con AIU de ${percent(parametros.aiuMateriales)} sobre materiales (tubos y platinas), ` +
+      `${percent(parametros.aiuGalvanizado ?? 0)} sobre galvanizado y ${percent(parametros.aiuMOExterna)} sobre pintura.`
+    );
+  if (parametros.aiuMateriaPrimaYMOInterna != null)
+    return (
+      `Precios calculados con AIU de ${percent(parametros.aiuMateriaPrimaYMOInterna)} sobre materia prima, ` +
+      `galvanizado y MO interna, y ${percent(parametros.aiuManoObraExterna)} sobre pintura.`
+    );
+  return '';
+}
+
+/**
+ * Pinta el HTML de la cotización. Separado de Puppeteer para poder probar el contenido del PDF.
+ * @param {Object} cot  - documento plano devuelto por Mongoose.lean()
+ * @returns {string}
+ */
+function renderHtml(cot) {
+  return getTemplate()({
+    ...cot,
+    // Las cotizaciones creadas antes de guardar la versión son la versión 1.
+    version: cot.version || 1,
+    notaAIU: notaAIU(cot.parametrosAplicados),
+    fecha: new Date(cot.createdAt || Date.now()).toLocaleDateString('es-CO', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+  });
+}
+
 /**
  * Renderiza una cotización (documento ya persistido) como PDF.
  * @param {Object} cot  - documento plano devuelto por Mongoose.lean()
  * @returns {Promise<Buffer>}
  */
 async function renderCotizacionPdf(cot) {
-  const tpl = getTemplate();
-
-  // Normalizo campos mostrables
-  const data = {
-    ...cot,
-    fecha: new Date(cot.createdAt || Date.now()).toLocaleDateString('es-CO', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    })
-  };
-
-  const html = tpl(data);
+  const html = renderHtml(cot);
 
   const options = {
     format: 'A4',
@@ -72,4 +98,4 @@ async function renderCotizacionPdf(cot) {
   }
 }
 
-module.exports = { renderCotizacionPdf };
+module.exports = { renderCotizacionPdf, renderHtml, notaAIU };
