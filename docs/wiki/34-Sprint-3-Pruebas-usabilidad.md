@@ -148,7 +148,7 @@ Regla del documento maestro: los ajustes **sencillos** se aplican antes de la en
 | HU-15 Buscar y filtrar candidatos (#19)                     | Backlog; confirmar con T8–T9              |
 | HU-16 Consultar perfil consolidado (#20)                    | Backlog                                   |
 | HU-18 Gestionar etapa de selección (#22)                    | Backlog; necesaria para cerrar el proceso |
-| Corregir el PDF de la cotización (bug #63)                  | Bug abierto; afecta T2                    |
+| Corregir el PDF de la cotización (bug #63)                  | Corregido en el PR #83                    |
 | Historias nuevas que salgan de hallazgos críticos o mayores | Sección 5                                 |
 
 ### Conclusiones

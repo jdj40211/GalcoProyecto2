@@ -34,3 +34,5 @@ Cada issue abierto se contrastó con el código de `main`, con los PR fusionados
 | #65   | EP-05 Plataforma, despliegue y operación  | Sigue abierta    | Depende de #70                                                                                                |
 
 Estado de los milestones: **Sprint 2** cerrado; **Sprint 3** abierto solo por #70 y #65, para cerrarlo cuando se registre la verificación del despliegue; **Sprint 4 (hipotético)** con los nueve issues movidos. Si el PR #83 se fusiona, el issue #63 puede cerrarse y salir del Sprint 4.
+
+> **Seguimiento (11 de noviembre de 2026):** el PR #83 se fusionó; el issue #63 quedó cerrado y volvió al milestone **Sprint 3**. El Sprint 4 (hipotético) queda con ocho issues.
