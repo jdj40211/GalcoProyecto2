@@ -2,6 +2,7 @@ import http from './http';
 import { fileToDataUrl } from './format';
 
 const data = (response) => response.data;
+const ANALYSIS_TIMEOUT_MS = 120000;
 const documentBlob = (candidateId, document) =>
   http
     .get(`/candidatos/${candidateId}/documentos/${document.id}`, { responseType: 'blob' })
@@ -12,8 +13,14 @@ export const candidatosService = {
   get: (id) => http.get(`/candidatos/${id}`).then(data),
   create: (payload) => http.post('/candidatos', payload).then(data),
   attach: (id, payload) => http.post(`/candidatos/${id}/documentos`, payload).then(data),
-  // HU-28: la IA propone; RRHH revisa y confirma.
-  analyze: (id, documentoId) => http.post(`/candidatos/${id}/analisis`, { documentoId }).then(data),
+  // HU-28: la IA propone; RRHH revisa y confirma. El análisis puede tardar hasta OCR_TIMEOUT_MS (45 s) en el
+  // servidor: si la interfaz cortara antes, el candidato se crearía igual y un reintento lo duplicaría.
+  analyze: (id, documentoId) =>
+    http.post(`/candidatos/${id}/analisis`, { documentoId }, { timeout: ANALYSIS_TIMEOUT_MS }).then(data),
+  // HU-34: registra desde la hoja de vida (queda pendiente de revisión) y descarta pendientes.
+  registerFromResume: (payload) =>
+    http.post('/candidatos/desde-hoja-de-vida', payload, { timeout: ANALYSIS_TIMEOUT_MS }).then(data),
+  removePending: (id) => http.delete(`/candidatos/${id}`).then(data),
   confirm: (id, analisisId, datos) =>
     http.post(`/candidatos/${id}/analisis/${analisisId}/confirmar`, { datos }).then(data),
 

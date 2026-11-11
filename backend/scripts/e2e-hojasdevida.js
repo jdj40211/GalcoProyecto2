@@ -80,6 +80,10 @@ async function run() {
     assert.doesNotMatch(menu, /Solicitudes de viaje|Cotizador|Usuarios/i);
     await shot('01-candidatos-vacio.png');
 
+    // El registro manual vive en un desplegable desde HU-34: se abre como lo haría RRHH.
+    await page.$eval('details', (element) => {
+      element.open = true;
+    });
     // CA1: sin correo ni teléfono no se registra.
     await set('#candidate-id', '1.017.234.567');
     await set('#candidate-name', 'Ana María Pérez');
@@ -106,7 +110,7 @@ async function run() {
     await set('#education-school-0', 'SENA');
     await button('Agregar certificación');
     await set('#certification-name-0', 'Trabajo en alturas');
-    await page.$eval('input[type="checkbox"]', (element) => element.click());
+    await page.$eval('details input[type="checkbox"]', (element) => element.click());
     await button('Registrar candidato');
     await contains('quedó registrado como candidato');
     await contains('CC 1017234567');
@@ -246,6 +250,61 @@ async function run() {
     await shot('07-ranking-detalle.png');
     await page.click('.modal .modal-actions .btn-outline:last-child');
     await page.waitForFunction(() => !document.querySelector('.modal'));
+
+    // HU-34: subir dos hojas de vida a la vez para la vacante, revisar y confirmar una, descartar la otra.
+    const resumes = fs.mkdtempSync(path.join(os.tmpdir(), 'galco-e2e-hv-'));
+    try {
+      const resumePaths = ['HV_01_laura.pdf', 'HV_02_andres.pdf'].map((name) => {
+        const file = path.join(resumes, name);
+        fs.writeFileSync(file, '%PDF-1.7\nHoja de vida de prueba\n%%EOF\n');
+        return file;
+      });
+      await page.click('a[href="/candidatos"]');
+      await contains('Registrar candidatos');
+      const [vacancyRow] = await vacancies.list();
+      await page.select('#batch-vacancy', vacancyRow.id);
+      const batchInput = await page.waitForSelector('#batch-files');
+      await batchInput.uploadFile(...resumePaths);
+      await page.$eval('#batch-consent', (element) => element.click());
+      await button('Analizar hojas de vida');
+      await contains('2 de 2 hoja(s) de vida quedaron pendientes de revisión');
+      await contains('Pendientes de revisión (2)');
+      assert.equal((await candidates.list()).filter((item) => item.estado === 'pendiente_revision').length, 2);
+      await shot('08-registro-desde-hv.png');
+
+      // Revisar y confirmar la primera, sin identificación del archivo y agregándola al revisar.
+      await page.click('a[href^="/candidatos/"][href*="/analisis/"]');
+      await contains('Aplica a');
+      await page.waitForSelector('#review-id');
+      await set('#review-id', '1.017.555.000');
+      await shot('09-revision-pendiente.png');
+      await set('#review-name', 'Laura Marcela Restrepo');
+      await set('#review-email', 'laura.restrepo@example.com');
+      await button('Confirmar datos');
+      await page.waitForFunction(() => location.pathname === '/candidatos');
+      await contains('quedó registrado:');
+      await contains('Pendientes de revisión (1)');
+      const laura = (await candidates.list()).find((item) => item.nombre === 'Laura Marcela Restrepo');
+      assert.equal(laura.estado, 'registrado');
+      assert.equal(laura.identificacion, '1017555000');
+      assert.equal(laura.cargoInteres, 'Soldador');
+      assert.equal(laura.evaluaciones.length, 1, 'quedó evaluada contra su vacante');
+
+      // Descartar la segunda: desaparece con su hoja de vida.
+      await button('Descartar');
+      await contains('Esta acción no se puede deshacer');
+      await page.click('.modal .btn-danger');
+      await contains('Hoja de vida descartada');
+      assert.equal((await candidates.list()).filter((item) => item.estado === 'pendiente_revision').length, 0);
+      assert.equal(
+        await page.evaluate(() => document.body.innerText.includes('Pendientes de revisión')),
+        false,
+        'sin pendientes no se muestra la sección'
+      );
+    } finally {
+      fs.rmSync(resumes, { recursive: true, force: true });
+    }
+
     await page.click('a[href="/vacantes"]');
     await contains('Crear vacante');
     await tableButton('Cerrar');
@@ -284,7 +343,7 @@ async function run() {
 
     assert.deepEqual(errors, []);
     console.log(
-      'E2E_HOJASDEVIDA_OK: rol RRHH, registro, validaciones, duplicado, documentos, análisis con IA, vacantes, ranking y permisos.'
+      'E2E_HOJASDEVIDA_OK: rol RRHH, registro, validaciones, duplicado, documentos, análisis con IA, vacantes, ranking, registro desde hojas de vida y permisos.'
     );
   } finally {
     await browser.close();

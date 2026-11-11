@@ -7,6 +7,8 @@ const Joi = require('joi');
 const vacancies = require('./services/vacantes.service');
 const evaluations = require('./services/evaluaciones.service');
 const schemas = require('./validators/candidato.validator');
+const candidatesRepository = require('./services/candidatos.repository.service');
+const config = require('../../config');
 const vacancySchemas = require('./validators/vacante.validator');
 
 // Las hojas de vida son datos personales: solo Recursos Humanos y administración las consultan (HU-13 CA6).
@@ -19,7 +21,7 @@ const failAction = (_request, _h, error) => {
 module.exports = {
   name: 'hojasdevida-module',
   version: '1.0.0',
-  register: async (server) =>
+  register: async (server) => {
     server.route([
       // HU-29: vacantes con sus criterios de evaluación.
       { method: 'GET', path: '/vacantes', options: { auth, handler: () => vacancies.list() } },
@@ -74,6 +76,22 @@ module.exports = {
           handler: (request) => evaluations.ranking(request.params.id, request.query)
         }
       },
+      // HU-34: registrar desde la hoja de vida y descartar candidatos pendientes.
+      {
+        method: 'POST',
+        path: '/candidatos/desde-hoja-de-vida',
+        options: {
+          auth,
+          validate: { payload: schemas.fromResume, options: { stripUnknown: true }, failAction },
+          handler: async (request, h) =>
+            h.response(await service.registerFromResume(request.payload, request.auth.credentials)).code(201)
+        }
+      },
+      {
+        method: 'DELETE',
+        path: '/candidatos/{id}',
+        options: { auth, handler: (request) => service.removePending(request.params.id) }
+      },
       {
         method: 'GET',
         path: '/candidatos',
@@ -101,7 +119,12 @@ module.exports = {
           auth,
           validate: { payload: schemas.confirm, options: { abortEarly: false, stripUnknown: true }, failAction },
           handler: (request) =>
-            analyses.confirm(request.params.id, request.params.analisisId, request.payload, request.auth.credentials)
+            service.confirmAnalysis(
+              request.params.id,
+              request.params.analisisId,
+              request.payload,
+              request.auth.credentials
+            )
         }
       },
       {
@@ -144,5 +167,15 @@ module.exports = {
           }
         }
       }
-    ])
+    ]);
+    // HU-34: quita el índice de identificación obligatoria de HU-13 en bases que ya lo tienen.
+    if (config.persistence.mode === 'mongo') {
+      try {
+        const dropped = await candidatesRepository.migrate();
+        if (dropped.length) server.log(['hojasdevida'], `Índices reemplazados: ${dropped.join(', ')}`);
+      } catch (error) {
+        console.error(`[hojasdevida] No se pudo migrar el índice de identificación: ${error.message}`);
+      }
+    }
+  }
 };

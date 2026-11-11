@@ -33,6 +33,31 @@
           Verifica antes de confirmar.
         </div>
 
+        <template v-if="isPendingCandidate">
+          <p>
+            Aplica a <strong>{{ candidate.cargoInteres }}</strong
+            >. Al confirmar queda registrado y evaluado contra esa vacante.
+          </p>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="review-id-type">Tipo de documento</label
+              ><select id="review-id-type" v-model="form.tipoIdentificacion">
+                <option v-for="item in idTypes" :key="item.id" :value="item.id">{{ item.nombre }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="review-id">Número de identificación (opcional)</label
+              ><input
+                id="review-id"
+                v-model.trim="form.identificacion"
+                minlength="4"
+                maxlength="30"
+                autocomplete="off"
+              />
+            </div>
+          </div>
+        </template>
+
         <div class="form-group">
           <label for="review-name">Nombre completo *</label>
           <div class="field-with-status">
@@ -289,6 +314,7 @@ import { useRoute, useRouter } from 'vue-router';
 import EmptyState from '@/components/EmptyState.vue';
 import FieldBadge from '@/components/FieldBadge.vue';
 import PdfPreview from '@/components/PdfPreview.vue';
+import { idTypes } from '@/config/domain';
 import { candidatosService } from '@/services/candidatos.service';
 import { useToastStore } from '@/stores/toast.store';
 
@@ -298,6 +324,8 @@ const toast = useToastStore();
 const loading = ref(true);
 const saving = ref(false);
 const candidate = ref(null);
+// HU-34: un candidato registrado desde su hoja de vida recibe aquí su identificación (opcional).
+const isPendingCandidate = computed(() => candidate.value?.estado === 'pendiente_revision');
 const analysis = ref(null);
 const document = ref(null);
 const previewUrl = ref('');
@@ -310,6 +338,8 @@ const rows = {
   certificaciones: () => ({ nombre: '', entidad: '', vencimiento: '' })
 };
 const form = reactive({
+  tipoIdentificacion: 'CC',
+  identificacion: '',
   nombre: '',
   correo: '',
   telefono: '',
@@ -412,6 +442,9 @@ async function submit() {
         .map((item) => item.trim())
         .filter(Boolean);
     const updated = await candidatosService.confirm(candidate.value.id, analysis.value.id, {
+      ...(isPendingCandidate.value
+        ? { tipoIdentificacion: form.tipoIdentificacion, identificacion: form.identificacion }
+        : {}),
       nombre: form.nombre,
       correo: form.correo,
       telefono: form.telefono,
@@ -422,7 +455,14 @@ async function submit() {
       habilidades: list(form.habilidades),
       idiomas: list(form.idiomas)
     });
-    toast.show(`Los datos de ${updated.nombre} quedaron confirmados.`, 'success');
+    // HU-34: si venía de su hoja de vida, el aviso dice cómo quedó evaluado en su vacante.
+    if (updated.evaluacion)
+      toast.show(
+        `${updated.nombre} quedó registrado: ${updated.evaluacion.puntaje} / 100 en ${updated.evaluacion.vacante.cargo}.`,
+        'success'
+      );
+    else if (updated.avisoEvaluacion) toast.show(`${updated.nombre}: ${updated.avisoEvaluacion}`, 'info');
+    else toast.show(`Los datos de ${updated.nombre} quedaron confirmados.`, 'success');
     router.push('/candidatos');
   } catch (error) {
     toast.show(error.message, 'danger');

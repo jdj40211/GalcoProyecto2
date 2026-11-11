@@ -90,6 +90,37 @@ test('reconoce el nivel de formación por el nivel declarado o por el título', 
   assert.equal(levelOf({ nivel: '', titulo: 'Ingeniera mecánica' }), 'Profesional');
   assert.equal(levelOf({ nivel: '', titulo: 'Magíster en gestión' }), 'Maestría');
   assert.equal(levelOf({ nivel: 'Curso', titulo: 'Excel básico' }), null);
+  // HU-34: títulos de las hojas de vida de prueba que no traían nivel reconocible.
+  assert.equal(
+    levelOf({ nivel: '', titulo: 'Estadística', institucion: 'Universidad Capital Simulada' }),
+    'Profesional'
+  );
+  assert.equal(
+    levelOf({ nivel: '', titulo: 'Administración de Empresas', institucion: 'Corporación Costa Azul' }),
+    'Profesional'
+  );
+  assert.equal(levelOf({ nivel: '', titulo: 'Tecnología en Logística', institucion: 'Instituto Andino' }), 'Tecnólogo');
+  assert.equal(
+    levelOf({ nivel: '', titulo: 'Técnica en Asistencia Administrativa', institucion: 'Centro Beta' }),
+    'Técnico'
+  );
+  assert.equal(
+    levelOf({ nivel: '', titulo: 'Tecnología en Electromecánica', institucion: 'Universidad X' }),
+    'Tecnólogo'
+  );
+});
+
+test('HU-34: una certificación con palabras extra cumple la obligatoria ("Trabajo seguro en alturas")', async () => {
+  const vacancy = await createVacancy();
+  const person = await candidate({
+    certificaciones: [{ nombre: 'Trabajo seguro en alturas (formación simulada)', entidad: 'SENA', vencimiento: '' }]
+  });
+  const evaluation = (await evaluate(vacancy, person)).result;
+  assert.equal(evaluation.cumpleObligatorios, true, JSON.stringify(evaluation.obligatoriosIncumplidos));
+  const unrelated = await candidate({
+    certificaciones: [{ nombre: 'Trabajo en equipo', entidad: 'X', vencimiento: '' }]
+  });
+  assert.equal((await evaluate(vacancy, unrelated)).result.cumpleObligatorios, false, 'no basta una palabra en común');
 });
 
 test('CP-01 y CA1: puntaje con el aporte de cada criterio, justificación y evidencia', async () => {
