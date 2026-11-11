@@ -77,11 +77,37 @@ const create = Joi.object({
   autorizacionDatos: Joi.boolean().required()
 }).custom(hasContact);
 
-// HU-28: la identificación y el cargo de interés no los cambia el análisis.
+// HU-28: el cargo de interés no lo cambia el análisis. La identificación solo se toma al confirmar a
+// un candidato registrado desde su hoja de vida (HU-34), y es opcional.
 const analyze = Joi.object({ documentoId: Joi.string().max(80).required() });
 const confirm = Joi.object({
-  datos: Joi.object({ ...contactFields, ...profileFields, habilidades: shortList, idiomas: shortList })
+  datos: Joi.object({
+    tipoIdentificacion: Joi.string()
+      .valid(...ID_TYPES)
+      .default('CC'),
+    identificacion: Joi.string()
+      .trim()
+      .pattern(/^[A-Za-z0-9.\- ]{4,30}$/)
+      .allow('')
+      .default('')
+      .messages({ 'string.pattern.base': 'La identificación solo admite letras, números, puntos y guiones.' }),
+    ...contactFields,
+    ...profileFields,
+    habilidades: shortList,
+    idiomas: shortList
+  })
     .custom(hasContact)
+    .required()
+});
+
+// HU-34: registro desde la hoja de vida. La autorización debe ser true: sin ella no se envía nada a la IA.
+const fromResume = Joi.object({
+  vacanteId: Joi.string().max(80).required(),
+  autorizacionDatos: Joi.boolean().required(),
+  nombre: Joi.string().trim().min(1).max(255).required(),
+  tipo: Joi.string().max(120).required(),
+  fileDataUrl: Joi.string()
+    .max(15 * 1024 * 1024)
     .required()
 });
 
@@ -96,4 +122,4 @@ const document = Joi.object({
     .required()
 });
 
-module.exports = { ID_TYPES, create, document, analyze, confirm };
+module.exports = { ID_TYPES, create, document, analyze, confirm, fromResume };

@@ -9,8 +9,27 @@ const Candidato = require('../models/candidato.model');
 const memory = [];
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const duplicate = () => Boom.conflict('Ya existe un candidato con esa identificación o ese correo.');
+// Un valor vacío nunca es un duplicado (HU-34: la identificación es opcional).
+const clashes = (item, data) =>
+  (data.identificacion && item.identificacion === data.identificacion) || (data.correo && item.correo === data.correo);
 
 module.exports = {
+  // HU-34: el índice "identificacion_1" de HU-13 exigía identificación única en todos los candidatos y
+  // chocaría con los que no la tienen. Se elimina; lo reemplaza "identificacion_unica" (parcial).
+  async migrate() {
+    if (config.persistence.mode !== 'mongo') return [];
+    let indexes;
+    try {
+      indexes = await Candidato.collection.indexes();
+    } catch (error) {
+      if (error.codeName === 'NamespaceNotFound') return [];
+      throw error;
+    }
+    const legacy = indexes.filter((index) => index.name === 'identificacion_1' && !index.partialFilterExpression);
+    for (const index of legacy) await Candidato.collection.dropIndex(index.name);
+    await Candidato.createIndexes();
+    return legacy.map((index) => index.name);
+  },
   async list() {
     if (config.persistence.mode === 'mongo')
       return (await Candidato.find().sort({ createdAt: -1 }).limit(200)).map((item) => item.toJSON());
@@ -28,10 +47,7 @@ module.exports = {
         throw error;
       }
     }
-    if (
-      memory.some((item) => item.identificacion === data.identificacion || (data.correo && item.correo === data.correo))
-    )
-      throw duplicate();
+    if (memory.some((item) => clashes(item, data))) throw duplicate();
     const timestamp = new Date().toISOString();
     const item = { id: crypto.randomUUID(), ...clone(data), createdAt: timestamp, updatedAt: timestamp };
     memory.push(item);
@@ -110,10 +126,18 @@ module.exports = {
     const item = memory.find((entry) => entry.id === id);
     const analysis = item?.analisis?.find((entry) => entry.id === analysisId && entry.estado === 'pendiente');
     if (!analysis) return null;
-    if (changes.correo && memory.some((entry) => entry !== item && entry.correo === changes.correo)) throw duplicate();
+    if (memory.some((entry) => entry !== item && clashes(entry, changes))) throw duplicate();
     Object.assign(item, clone(changes), { updatedAt: new Date().toISOString() });
     Object.assign(analysis, clone(analysisPatch));
     return clone(item);
+  },
+  async remove(id) {
+    if (config.persistence.mode === 'mongo')
+      return mongoose.isValidObjectId(id) && Boolean(await Candidato.findByIdAndDelete(id));
+    const index = memory.findIndex((item) => item.id === id);
+    if (index < 0) return false;
+    memory.splice(index, 1);
+    return true;
   },
   resetMemory() {
     memory.splice(0);

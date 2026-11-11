@@ -192,7 +192,8 @@ async function load() {
   try {
     [vacancy.value, candidates.value] = await Promise.all([
       vacantesService.get(route.params.id),
-      candidatosService.list().then((result) => result.items)
+      // HU-34: los pendientes de revisión aún no tienen datos confirmados y no se pueden evaluar.
+      candidatosService.list().then((result) => result.items.filter((item) => item.estado !== 'pendiente_revision'))
     ]);
     await loadRanking();
   } catch (error) {

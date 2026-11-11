@@ -1,210 +1,308 @@
 <template>
   <section class="card card-pad">
-    <h2>Registrar candidato</h2>
-    <p>Registra los datos principales del candidato. Queda en estado Registrado y con su autorización de datos.</p>
+    <h2>Registrar candidatos</h2>
+    <p>
+      Sube las hojas de vida y elige la vacante a la que aplican. La IA propone los datos de cada candidato; tú los
+      revisas y, al confirmar, queda registrado y evaluado en el ranking de esa vacante.
+    </p>
     <p v-if="error" class="alert error" role="alert">{{ error }}</p>
-    <form class="candidate-form" @submit.prevent="save">
+    <form class="candidate-form" @submit.prevent="analyzeResumes">
       <div class="form-row">
         <div class="form-group">
-          <label for="candidate-id-type">Tipo de documento</label
-          ><select id="candidate-id-type" v-model="form.tipoIdentificacion">
-            <option v-for="item in idTypes" :key="item.id" :value="item.id">{{ item.nombre }}</option>
+          <label for="batch-vacancy">Vacante *</label
+          ><select id="batch-vacancy" v-model="batch.vacanteId" required>
+            <option value="" disabled>Selecciona una vacante abierta</option>
+            <option v-for="item in openVacancies" :key="item.id" :value="item.id">{{ item.cargo }}</option>
           </select>
         </div>
         <div class="form-group">
-          <label for="candidate-id">Número de identificación *</label
+          <label for="batch-files">Hojas de vida PDF o DOCX (máximo 10 MB cada una) *</label
           ><input
-            id="candidate-id"
-            v-model.trim="form.identificacion"
+            id="batch-files"
+            ref="batchInput"
+            type="file"
+            multiple
+            accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             required
-            minlength="4"
-            maxlength="30"
-            autocomplete="off"
+            @change="batch.files = [...$event.target.files]"
           />
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="candidate-name">Nombre completo *</label
-          ><input id="candidate-name" v-model.trim="form.nombre" required minlength="3" maxlength="120" />
-        </div>
-        <div class="form-group">
-          <label for="candidate-city">Ciudad</label
-          ><input id="candidate-city" v-model.trim="form.ciudad" maxlength="120" />
-        </div>
+      <label class="consent-option">
+        <input id="batch-consent" v-model="batch.autorizacionDatos" type="checkbox" /> Los candidatos autorizaron el
+        tratamiento de sus datos personales según la Ley 1581 de 2012.
+      </label>
+      <div class="button-row">
+        <button
+          class="btn btn-primary"
+          :disabled="analyzingBatch || !batch.vacanteId || !batch.files.length || !batch.autorizacionDatos"
+        >
+          {{ analyzingBatch ? 'Analizando…' : 'Analizar hojas de vida' }}
+        </button>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="candidate-email">Correo</label
-          ><input id="candidate-email" v-model.trim="form.correo" type="email" maxlength="254" />
-        </div>
-        <div class="form-group">
-          <label for="candidate-phone">Teléfono</label
-          ><input id="candidate-phone" v-model.trim="form.telefono" type="tel" maxlength="20" />
-        </div>
+    </form>
+
+    <div v-if="progress.length" class="table-wrapper mt-6">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Hoja de vida</th>
+            <th>Resultado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in progress" :key="item.id">
+            <td>{{ item.archivo }}</td>
+            <td>
+              <span v-if="item.estado === 'error'" class="field-error">{{ item.mensaje }}</span>
+              <span v-else>{{ item.mensaje }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <template v-if="pending.length">
+      <h3 class="mt-6">Pendientes de revisión ({{ pending.length }})</h3>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Hoja de vida</th>
+              <th>Vacante</th>
+              <th>Nombre propuesto</th>
+              <th>Cargada</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in pending" :key="item.id">
+              <td>{{ item.documentos[0]?.nombre }}</td>
+              <td>{{ item.cargoInteres }}</td>
+              <td>{{ pendingAnalysis(item)?.propuesta.datos.nombre || '—' }}</td>
+              <td>{{ dateShort(item.createdAt) }}</td>
+              <td>
+                <div class="button-row">
+                  <RouterLink
+                    v-if="pendingAnalysis(item)"
+                    class="btn btn-outline"
+                    :to="`/candidatos/${item.id}/analisis/${pendingAnalysis(item).id}`"
+                    >Revisar</RouterLink
+                  >
+                  <button class="btn btn-outline" type="button" @click="discarding = item">Descartar</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="candidate-position">Cargo de interés *</label
-          ><input id="candidate-position" v-model.trim="form.cargoInteres" required minlength="2" maxlength="120" />
-        </div>
-        <div class="form-group">
-          <label for="candidate-source">Fuente de postulación</label
-          ><input
-            id="candidate-source"
-            v-model.trim="form.fuente"
-            maxlength="80"
-            placeholder="Referido, portal de empleo…"
-          />
-        </div>
-      </div>
+    </template>
 
-      <fieldset class="candidate-form">
-        <legend>Formación académica</legend>
-        <div v-for="(item, index) in form.formacion" :key="item.id" class="candidate-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label :for="`education-title-${index}`">Título *</label
-              ><input :id="`education-title-${index}`" v-model.trim="item.titulo" required minlength="2" />
-            </div>
-            <div class="form-group">
-              <label :for="`education-school-${index}`">Institución *</label
-              ><input :id="`education-school-${index}`" v-model.trim="item.institucion" required minlength="2" />
-            </div>
+    <details class="manual-entry mt-6">
+      <summary>Registrar manualmente (por ejemplo, una hoja de vida en DOC o si la IA no está disponible)</summary>
+      <form class="candidate-form" @submit.prevent="save">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="candidate-id-type">Tipo de documento</label
+            ><select id="candidate-id-type" v-model="form.tipoIdentificacion">
+              <option v-for="item in idTypes" :key="item.id" :value="item.id">{{ item.nombre }}</option>
+            </select>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label :for="`education-level-${index}`">Nivel</label
-              ><input
-                :id="`education-level-${index}`"
-                v-model.trim="item.nivel"
-                placeholder="Técnico, tecnólogo, profesional…"
-              />
-            </div>
-            <div class="form-group">
-              <label :for="`education-year-${index}`">Año de grado</label
-              ><input
-                :id="`education-year-${index}`"
-                v-model.number="item.anio"
-                type="number"
-                min="1950"
-                :max="maxGraduationYear"
-              />
-            </div>
-          </div>
-          <div class="button-row">
-            <button
-              class="icon-btn"
-              type="button"
-              :aria-label="`Eliminar formación ${index + 1}`"
-              :title="`Eliminar formación ${index + 1}`"
-              @click="form.formacion.splice(index, 1)"
-            >
-              <i class="fas fa-trash" aria-hidden="true"></i>
-            </button>
+          <div class="form-group">
+            <label for="candidate-id">Número de identificación *</label
+            ><input
+              id="candidate-id"
+              v-model.trim="form.identificacion"
+              required
+              minlength="4"
+              maxlength="30"
+              autocomplete="off"
+            />
           </div>
         </div>
-        <div class="button-row">
-          <button class="btn btn-outline" type="button" @click="add('formacion')">
-            <i class="fas fa-plus" aria-hidden="true"></i>Agregar formación
-          </button>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="candidate-name">Nombre completo *</label
+            ><input id="candidate-name" v-model.trim="form.nombre" required minlength="3" maxlength="120" />
+          </div>
+          <div class="form-group">
+            <label for="candidate-city">Ciudad</label
+            ><input id="candidate-city" v-model.trim="form.ciudad" maxlength="120" />
+          </div>
         </div>
-      </fieldset>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="candidate-email">Correo</label
+            ><input id="candidate-email" v-model.trim="form.correo" type="email" maxlength="254" />
+          </div>
+          <div class="form-group">
+            <label for="candidate-phone">Teléfono</label
+            ><input id="candidate-phone" v-model.trim="form.telefono" type="tel" maxlength="20" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="candidate-position">Cargo de interés *</label
+            ><input id="candidate-position" v-model.trim="form.cargoInteres" required minlength="2" maxlength="120" />
+          </div>
+          <div class="form-group">
+            <label for="candidate-source">Fuente de postulación</label
+            ><input
+              id="candidate-source"
+              v-model.trim="form.fuente"
+              maxlength="80"
+              placeholder="Referido, portal de empleo…"
+            />
+          </div>
+        </div>
 
-      <fieldset class="candidate-form">
-        <legend>Experiencia laboral</legend>
-        <div v-for="(item, index) in form.experiencia" :key="item.id" class="candidate-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label :for="`experience-position-${index}`">Cargo *</label
-              ><input :id="`experience-position-${index}`" v-model.trim="item.cargo" required minlength="2" />
+        <fieldset class="candidate-form">
+          <legend>Formación académica</legend>
+          <div v-for="(item, index) in form.formacion" :key="item.id" class="candidate-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label :for="`education-title-${index}`">Título *</label
+                ><input :id="`education-title-${index}`" v-model.trim="item.titulo" required minlength="2" />
+              </div>
+              <div class="form-group">
+                <label :for="`education-school-${index}`">Institución *</label
+                ><input :id="`education-school-${index}`" v-model.trim="item.institucion" required minlength="2" />
+              </div>
             </div>
-            <div class="form-group">
-              <label :for="`experience-company-${index}`">Empresa *</label
-              ><input :id="`experience-company-${index}`" v-model.trim="item.empresa" required minlength="2" />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label :for="`experience-from-${index}`">Desde *</label
-              ><input :id="`experience-from-${index}`" v-model="item.desde" type="month" required />
-            </div>
-            <div class="form-group">
-              <label :for="`experience-to-${index}`">Hasta (vacío si trabaja allí)</label
-              ><input :id="`experience-to-${index}`" v-model="item.hasta" type="month" :min="item.desde" />
-            </div>
-          </div>
-          <div class="button-row">
-            <button
-              class="icon-btn"
-              type="button"
-              :aria-label="`Eliminar experiencia ${index + 1}`"
-              :title="`Eliminar experiencia ${index + 1}`"
-              @click="form.experiencia.splice(index, 1)"
-            >
-              <i class="fas fa-trash" aria-hidden="true"></i>
-            </button>
-          </div>
-        </div>
-        <div class="button-row">
-          <button class="btn btn-outline" type="button" @click="add('experiencia')">
-            <i class="fas fa-plus" aria-hidden="true"></i>Agregar experiencia
-          </button>
-        </div>
-      </fieldset>
-
-      <fieldset class="candidate-form">
-        <legend>Certificaciones</legend>
-        <div v-for="(item, index) in form.certificaciones" :key="item.id" class="candidate-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label :for="`certification-name-${index}`">Certificación *</label
-              ><input :id="`certification-name-${index}`" v-model.trim="item.nombre" required minlength="2" />
-            </div>
-            <div class="form-group">
-              <label :for="`certification-entity-${index}`">Entidad</label
-              ><input :id="`certification-entity-${index}`" v-model.trim="item.entidad" />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label :for="`certification-expiry-${index}`">Vencimiento</label
-              ><input :id="`certification-expiry-${index}`" v-model="item.vencimiento" type="date" />
+            <div class="form-row">
+              <div class="form-group">
+                <label :for="`education-level-${index}`">Nivel</label
+                ><input
+                  :id="`education-level-${index}`"
+                  v-model.trim="item.nivel"
+                  placeholder="Técnico, tecnólogo, profesional…"
+                />
+              </div>
+              <div class="form-group">
+                <label :for="`education-year-${index}`">Año de grado</label
+                ><input
+                  :id="`education-year-${index}`"
+                  v-model.number="item.anio"
+                  type="number"
+                  min="1950"
+                  :max="maxGraduationYear"
+                />
+              </div>
             </div>
             <div class="button-row">
               <button
                 class="icon-btn"
                 type="button"
-                :aria-label="`Eliminar certificación ${index + 1}`"
-                :title="`Eliminar certificación ${index + 1}`"
-                @click="form.certificaciones.splice(index, 1)"
+                :aria-label="`Eliminar formación ${index + 1}`"
+                :title="`Eliminar formación ${index + 1}`"
+                @click="form.formacion.splice(index, 1)"
               >
                 <i class="fas fa-trash" aria-hidden="true"></i>
               </button>
             </div>
           </div>
-        </div>
+          <div class="button-row">
+            <button class="btn btn-outline" type="button" @click="add('formacion')">
+              <i class="fas fa-plus" aria-hidden="true"></i>Agregar formación
+            </button>
+          </div>
+        </fieldset>
+
+        <fieldset class="candidate-form">
+          <legend>Experiencia laboral</legend>
+          <div v-for="(item, index) in form.experiencia" :key="item.id" class="candidate-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label :for="`experience-position-${index}`">Cargo *</label
+                ><input :id="`experience-position-${index}`" v-model.trim="item.cargo" required minlength="2" />
+              </div>
+              <div class="form-group">
+                <label :for="`experience-company-${index}`">Empresa *</label
+                ><input :id="`experience-company-${index}`" v-model.trim="item.empresa" required minlength="2" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label :for="`experience-from-${index}`">Desde *</label
+                ><input :id="`experience-from-${index}`" v-model="item.desde" type="month" required />
+              </div>
+              <div class="form-group">
+                <label :for="`experience-to-${index}`">Hasta (vacío si trabaja allí)</label
+                ><input :id="`experience-to-${index}`" v-model="item.hasta" type="month" :min="item.desde" />
+              </div>
+            </div>
+            <div class="button-row">
+              <button
+                class="icon-btn"
+                type="button"
+                :aria-label="`Eliminar experiencia ${index + 1}`"
+                :title="`Eliminar experiencia ${index + 1}`"
+                @click="form.experiencia.splice(index, 1)"
+              >
+                <i class="fas fa-trash" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="btn btn-outline" type="button" @click="add('experiencia')">
+              <i class="fas fa-plus" aria-hidden="true"></i>Agregar experiencia
+            </button>
+          </div>
+        </fieldset>
+
+        <fieldset class="candidate-form">
+          <legend>Certificaciones</legend>
+          <div v-for="(item, index) in form.certificaciones" :key="item.id" class="candidate-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label :for="`certification-name-${index}`">Certificación *</label
+                ><input :id="`certification-name-${index}`" v-model.trim="item.nombre" required minlength="2" />
+              </div>
+              <div class="form-group">
+                <label :for="`certification-entity-${index}`">Entidad</label
+                ><input :id="`certification-entity-${index}`" v-model.trim="item.entidad" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label :for="`certification-expiry-${index}`">Vencimiento</label
+                ><input :id="`certification-expiry-${index}`" v-model="item.vencimiento" type="date" />
+              </div>
+              <div class="button-row">
+                <button
+                  class="icon-btn"
+                  type="button"
+                  :aria-label="`Eliminar certificación ${index + 1}`"
+                  :title="`Eliminar certificación ${index + 1}`"
+                  @click="form.certificaciones.splice(index, 1)"
+                >
+                  <i class="fas fa-trash" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="btn btn-outline" type="button" @click="add('certificaciones')">
+              <i class="fas fa-plus" aria-hidden="true"></i>Agregar certificación
+            </button>
+          </div>
+        </fieldset>
+
+        <label class="consent-option">
+          <input v-model="form.autorizacionDatos" type="checkbox" /> El candidato autoriza el tratamiento de sus datos
+          personales según la Ley 1581 de 2012.
+        </label>
+
         <div class="button-row">
-          <button class="btn btn-outline" type="button" @click="add('certificaciones')">
-            <i class="fas fa-plus" aria-hidden="true"></i>Agregar certificación
-          </button>
+          <button class="btn btn-primary" :disabled="saving">Registrar candidato</button>
         </div>
-      </fieldset>
+      </form>
+    </details>
 
-      <label class="consent-option">
-        <input v-model="form.autorizacionDatos" type="checkbox" /> El candidato autoriza el tratamiento de sus datos
-        personales según la Ley 1581 de 2012.
-      </label>
-
-      <div class="button-row">
-        <button class="btn btn-primary" :disabled="saving">Registrar candidato</button>
-      </div>
-    </form>
-
-    <h3>Candidatos registrados</h3>
+    <h3 class="mt-6">Candidatos registrados</h3>
     <div v-if="loading" class="loading-state"><span class="spinner spinner-primary"></span>Cargando candidatos…</div>
     <EmptyState
-      v-else-if="!candidates.length"
+      v-else-if="!registered.length"
       icon="fa-id-card"
       title="No hay candidatos"
       message="Aún no se han registrado candidatos."
@@ -224,7 +322,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in candidates" :key="item.id">
+          <tr v-for="item in registered" :key="item.id">
             <td>{{ item.nombre }}</td>
             <td class="font-mono">{{ item.tipoIdentificacion }} {{ item.identificacion }}</td>
             <td>{{ item.cargoInteres }}</td>
@@ -314,11 +412,24 @@
         </div>
       </form>
     </BaseModal>
+
+    <BaseModal :open="Boolean(discarding)" title="Descartar hoja de vida" @close="discarding = null">
+      <p class="text-muted">
+        Se eliminará la hoja de vida {{ discarding?.documentos[0]?.nombre }} y su análisis. Esta acción no se puede
+        deshacer.
+      </p>
+      <div class="button-row modal-actions">
+        <button class="btn btn-danger" type="button" :disabled="saving" @click="confirmDiscard">
+          <i class="fas fa-trash" aria-hidden="true"></i>Descartar
+        </button>
+        <button class="btn btn-outline" type="button" @click="discarding = null">Cancelar</button>
+      </div>
+    </BaseModal>
   </section>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import BaseModal from '@/components/BaseModal.vue';
 import EmptyState from '@/components/EmptyState.vue';
@@ -326,11 +437,23 @@ import StatusBadge from '@/components/StatusBadge.vue';
 import { idTypes } from '@/config/domain';
 import { dateShort, fileToDataUrl } from '@/services/format';
 import { candidatosService } from '@/services/candidatos.service';
+import { vacantesService } from '@/services/vacantes.service';
 import { useToastStore } from '@/stores/toast.store';
 
 const toast = useToastStore();
 const router = useRouter();
 const candidates = ref([]);
+// HU-34: los candidatos registrados desde su hoja de vida esperan la revisión de RRHH.
+const PENDING = 'pendiente_revision';
+const pending = computed(() => candidates.value.filter((item) => item.estado === PENDING));
+const registered = computed(() => candidates.value.filter((item) => item.estado !== PENDING));
+const pendingAnalysis = (candidate) => (candidate.analisis || []).findLast((item) => item.estado === 'pendiente');
+const openVacancies = ref([]);
+const batchInput = ref(null);
+const batch = reactive({ vacanteId: '', files: [], autorizacionDatos: false });
+const progress = ref([]);
+const analyzingBatch = ref(false);
+const discarding = ref(null);
 const loading = ref(true);
 const saving = ref(false);
 const error = ref('');
@@ -372,7 +495,9 @@ function validate() {
 
 async function load() {
   try {
-    candidates.value = (await candidatosService.list()).items;
+    const [candidateList, vacancyList] = await Promise.all([candidatosService.list(), vacantesService.list()]);
+    candidates.value = candidateList.items;
+    openVacancies.value = vacancyList.items.filter((item) => item.estado === 'abierta');
   } catch (err) {
     error.value = err.message;
   } finally {
@@ -486,6 +611,69 @@ async function analyze(document) {
   }
 }
 
+// HU-34: cada hoja de vida se analiza una tras otra; si una falla, las demás continúan (CA3).
+async function analyzeResumes() {
+  error.value = '';
+  analyzingBatch.value = true;
+  progress.value = batch.files.map((file, index) => ({
+    id: `${index}-${file.name}`,
+    archivo: file.name,
+    estado: 'espera',
+    mensaje: 'En espera'
+  }));
+  for (const [index, file] of batch.files.entries()) {
+    const row = progress.value[index];
+    const tipo = MIME_BY_EXTENSION[(file.name.split('.').pop() || '').toLowerCase()];
+    if (!tipo || tipo === MIME_BY_EXTENSION.doc) {
+      Object.assign(row, { estado: 'error', mensaje: 'Solo PDF o DOCX; un DOC se registra manualmente.' });
+      continue;
+    }
+    if (file.size > MAX_FILE_BYTES) {
+      Object.assign(row, { estado: 'error', mensaje: 'El archivo supera el tamaño máximo de 10 MB.' });
+      continue;
+    }
+    Object.assign(row, { estado: 'analizando', mensaje: 'Analizando…' });
+    try {
+      const { candidato, analisis } = await candidatosService.registerFromResume({
+        vacanteId: batch.vacanteId,
+        autorizacionDatos: batch.autorizacionDatos,
+        nombre: file.name,
+        tipo,
+        fileDataUrl: await fileToDataUrl(file)
+      });
+      candidates.value.unshift(candidato);
+      Object.assign(row, {
+        estado: 'listo',
+        mensaje: `Listo para revisar: ${analisis.propuesta.datos.nombre || 'sin nombre detectado'}`
+      });
+    } catch (err) {
+      Object.assign(row, { estado: 'error', mensaje: err.message });
+    }
+  }
+  const ready = progress.value.filter((item) => item.estado === 'listo').length;
+  toast.show(
+    `${ready} de ${progress.value.length} hoja(s) de vida quedaron pendientes de revisión.`,
+    ready ? 'success' : 'danger'
+  );
+  Object.assign(batch, { files: [] });
+  if (batchInput.value) batchInput.value.value = '';
+  analyzingBatch.value = false;
+}
+
+async function confirmDiscard() {
+  saving.value = true;
+  try {
+    await candidatosService.removePending(discarding.value.id);
+    candidates.value = candidates.value.filter((item) => item.id !== discarding.value.id);
+    toast.show('Hoja de vida descartada.', 'info');
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    discarding.value = null;
+    saving.value = false;
+  }
+}
+
 onMounted(load);
 </script>
 
@@ -507,5 +695,15 @@ onMounted(load);
   min-height: 20px;
   flex: 0 0 20px;
   margin: 0;
+}
+/* Mismo aspecto que el único desplegable con estilo propio (.ocr-adjust summary en styles.css). */
+.manual-entry summary {
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.manual-entry[open] summary {
+  margin-bottom: 16px;
 }
 </style>

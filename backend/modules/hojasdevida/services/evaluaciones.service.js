@@ -31,22 +31,42 @@ const sameItem = (a, b) => {
   const [x, y] = [fold(a), fold(b)];
   return Boolean(x && y) && (x.includes(y) || y.includes(x));
 };
+// Una certificación cubre a la pedida si contiene todas sus palabras significativas:
+// "Trabajo seguro en alturas (formación simulada)" cubre "Trabajo en alturas"; "Trabajo en equipo" no.
+const STOPWORDS = new Set(['de', 'del', 'la', 'las', 'el', 'los', 'en', 'y', 'e', 'o', 'u', 'a', 'para', 'con', 'por']);
+const words = (text) =>
+  fold(text)
+    .split(/[^a-z0-9]+/)
+    .filter((word) => word && !STOPWORDS.has(word));
+const covers = (owned, required) => {
+  if (sameItem(owned, required)) return true;
+  const have = new Set(words(owned));
+  const need = words(required);
+  return need.length > 0 && need.every((word) => have.has(word));
+};
 
-// Nivel de formación por el nivel declarado o, si falta, por el título. Un curso no es un nivel.
+// Nivel de formación: el declarado; si falta, el que indica el título (los niveles técnicos primero,
+// para que "Técnica en Asistencia Administrativa" no pase por profesional) y, como último recurso, un
+// título de universidad cuenta como profesional. Un curso no es un nivel.
 const TITLE_LEVELS = [
   [/doctor|phd/, 'Doctorado'],
   [/maestr|magist|master/, 'Maestría'],
   [/especiali/, 'Especialización'],
-  [/profesional|ingenier|licenciad|pregrado|universitari|administrador|contador|abogad/, 'Profesional'],
   [/tecnolog/, 'Tecnólogo'],
   [/tecnic/, 'Técnico'],
+  [
+    /profesional|ingenier|licenciad|pregrado|universitari|administracion de empresas|administrador|contador|contaduria|economi|estadistic|derecho|abogad|psicolog|medicin|arquitect|comunicacion social/,
+    'Profesional'
+  ],
   [/bachiller/, 'Bachiller']
 ];
-function levelOf({ nivel, titulo }) {
+function levelOf({ nivel, titulo, institucion }) {
   const declared = FORMATION_LEVELS.find((level) => fold(level) === fold(nivel));
   if (declared) return declared;
   const text = fold(`${nivel} ${titulo}`);
-  return TITLE_LEVELS.find(([pattern]) => pattern.test(text))?.[1] || null;
+  const byTitle = TITLE_LEVELS.find(([pattern]) => pattern.test(text))?.[1];
+  if (byTitle) return byTitle;
+  return /universidad/.test(fold(institucion)) && !/curso|diplomado|taller/.test(text) ? 'Profesional' : null;
 }
 
 function formationCriterion(candidate, vacancy) {
@@ -77,7 +97,7 @@ function experienceCriterion(candidate, vacancy) {
 function certificationsCriterion(candidate, vacancy) {
   const today = new Date().toISOString().slice(0, 10);
   const owned = candidate.certificaciones || [];
-  const find = (name) => owned.find((item) => sameItem(item.nombre, name));
+  const find = (name) => owned.find((item) => covers(item.nombre, name));
   const valid = (item) => item && (!item.vencimiento || item.vencimiento >= today);
   const required = vacancy.certificacionesObligatorias.map((name) => ({ name, item: find(name) }));
   const desired = vacancy.certificacionesDeseables.map((name) => ({ name, item: find(name) }));
@@ -218,6 +238,9 @@ async function evaluate(vacancyId, { candidatoId }, credentials) {
   const vacancy = await vacancies.openForEvaluation(vacancyId);
   const candidate = await candidates.get(candidatoId);
   if (!candidate) throw Boom.notFound('Candidato no encontrado.');
+  // HU-34: un candidato pendiente aún no tiene datos confirmados por RRHH.
+  if (candidate.estado === 'pendiente_revision')
+    throw Boom.conflict('Revisa y confirma los datos del candidato antes de evaluarlo.');
 
   const formation = formationCriterion(candidate, vacancy);
   const experience = experienceCriterion(candidate, vacancy);

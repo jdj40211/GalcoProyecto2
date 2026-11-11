@@ -255,6 +255,11 @@ async function existingCandidate(id) {
 }
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+// Igual que en candidatos.service: "1.017.234.567" y "1017234567" son la misma identificación.
+const normalizeId = (value) =>
+  String(value || '')
+    .replace(/[^A-Za-z0-9]/g, '')
+    .toUpperCase();
 
 module.exports = {
   normalize,
@@ -306,10 +311,21 @@ module.exports = {
     const correcciones = DATA_FIELDS.filter((field) => !same(analysis.propuesta.datos[field], datos[field])).map(
       (field) => ({ campo: field, valorExtraido: analysis.propuesta.datos[field], valorCorregido: datos[field] })
     );
+    const { tipoIdentificacion, identificacion, ...profile } = datos;
+    // HU-34: un candidato registrado desde su hoja de vida queda registrado al confirmar, con la
+    // identificación opcional. A uno ya registrado el análisis no le cambia la identificación.
+    const registration =
+      candidate.estado === 'pendiente_revision'
+        ? {
+            estado: 'registrado',
+            tipoIdentificacion: tipoIdentificacion || 'CC',
+            identificacion: normalizeId(identificacion)
+          }
+        : {};
     const updated = await candidates.confirmAnalysis(
       candidateId,
       analysisId,
-      { ...datos, anosExperiencia: yearsOfExperience(datos.experiencia) },
+      { ...profile, ...registration, anosExperiencia: yearsOfExperience(datos.experiencia) },
       {
         estado: 'confirmado',
         confirmadoPor: credentials.usuario,

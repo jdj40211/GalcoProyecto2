@@ -4,14 +4,17 @@ const mongoose = require('mongoose');
 
 const schema = new mongoose.Schema(
   {
-    tipoIdentificacion: { type: String, required: true },
+    tipoIdentificacion: { type: String, default: 'CC' },
     // Solo letras y dígitos en mayúscula: "1.017.234.567" y "1017234567" son la misma persona.
-    identificacion: { type: String, required: true, unique: true },
-    nombre: { type: String, required: true, trim: true },
+    // Opcional (HU-34): las hojas de vida no suelen traerla. Los obligatorios se validan en la API.
+    identificacion: { type: String, default: '' },
+    nombre: { type: String, default: '', trim: true },
     correo: { type: String, default: '' },
     telefono: { type: String, default: '' },
     ciudad: { type: String, default: '' },
     cargoInteres: { type: String, required: true, index: true },
+    // Vacante a la que aplica cuando se registra desde la hoja de vida (HU-34).
+    vacanteId: { type: String, default: '', index: true },
     fuente: { type: String, default: '' },
     formacion: { type: [mongoose.Schema.Types.Mixed], default: [] },
     experiencia: { type: [mongoose.Schema.Types.Mixed], default: [] },
@@ -45,7 +48,12 @@ const schema = new mongoose.Schema(
     }
   }
 );
-// Un correo vacío no es un duplicado: el índice único solo aplica a los correos diligenciados.
+// Un dato vacío no es un duplicado: los índices únicos solo aplican a los valores diligenciados.
 schema.index({ correo: 1 }, { unique: true, partialFilterExpression: { correo: { $gt: '' } } });
+// Nombre propio: reemplaza al índice "identificacion_1" de HU-13, que exigía identificación en todos.
+schema.index(
+  { identificacion: 1 },
+  { name: 'identificacion_unica', unique: true, partialFilterExpression: { identificacion: { $gt: '' } } }
+);
 
 module.exports = mongoose.models.Candidato || mongoose.model('Candidato', schema);
