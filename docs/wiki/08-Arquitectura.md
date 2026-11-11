@@ -1,6 +1,6 @@
 # 08 · Arquitectura implementada
 
-> Esta página describe el código ejecutable del MVP. Sustituye la arquitectura aspiracional de Sprint 0 para evitar diferencias entre documentación, demostración y repositorio.
+> Esta página describe el código ejecutable al cierre del Sprint 3. Sustituye la arquitectura aspiracional de Sprint 0 para evitar diferencias entre documentación, demostración y repositorio.
 
 ## Vista general
 
@@ -11,17 +11,23 @@ flowchart LR
     API --> AUTH[Firebase Authentication]
     API --> COT[Módulo Cotizador]
     API --> VIA[Módulo Viáticos]
+    API --> HV[Módulo Hojas de vida]
     COT --> REPO[Capa de repositorios]
     VIA --> REPO
+    HV --> REPO
+    HV --> GFS[(GridFS · hojas de vida)]
+    HV --> IA[OpenAI · análisis y habilidades]
     REPO --> MEM[(Memoria · desarrollo/pruebas)]
     REPO --> MDB[(MongoDB · entorno persistente)]
     COT --> PDF[PDF con Handlebars + Puppeteer]
     VIA --> OCR[OCR configurable]
 ```
 
+En la nube, la API y la interfaz compilada corren en un solo contenedor Docker en Render, con MongoDB Atlas como base de datos ([29 · Despliegue](29-Sprint-3-Despliegue.md)).
+
 ## Decisión para el MVP
 
-Se implementó un **monolito modular**: una sola aplicación web y una sola API, separadas internamente por dominio. Para un equipo académico y un primer MVP ofrece despliegue, depuración y pruebas simples, sin perder límites claros entre Cotizador y Viáticos. La extracción a servicios independientes queda disponible si el volumen o la operación lo justifican con evidencia.
+Se implementó un **monolito modular**: una sola aplicación web y una sola API, separadas internamente por dominio. Para un equipo académico y un primer MVP ofrece despliegue, depuración y pruebas simples, sin perder límites claros entre Cotizador, Viáticos y Hojas de vida. La extracción a servicios independientes queda disponible si el volumen o la operación lo justifican con evidencia.
 
 ## Capas y responsabilidades
 
@@ -29,7 +35,7 @@ Se implementó un **monolito modular**: una sola aplicación web y una sola API,
 | ------------ | ----------------------------- | ------------------------------------------------------------------------- |
 | Presentación | Vue 3, Vue Router, Pinia, CSS | Navegación, formularios, validación inmediata y estados visuales          |
 | API          | Hapi                          | Rutas REST, validación de entrada, autenticación y autorización           |
-| Dominio      | Servicios por módulo          | Cálculos de postes, consecutivos, solicitudes, OCR y aprobaciones         |
+| Dominio      | Servicios por módulo          | Cálculos de postes, solicitudes, OCR, análisis de hojas de vida y ranking |
 | Datos        | Repositorios intercambiables  | Persistencia en memoria para pruebas o MongoDB para ejecución persistente |
 | Salidas      | Puppeteer, TXT                | Cotización PDF y exportación contable                                     |
 
@@ -51,6 +57,14 @@ Se implementó un **monolito modular**: una sola aplicación web y una sola API,
 - Extrae y permite corregir datos OCR conservando trazabilidad.
 - Ofrece historial, revisión contable, indicadores y exportación TXT.
 
+### Hojas de vida (Sprint 3)
+
+- Registra candidatos a mano o desde su hoja de vida PDF o DOCX, con la autorización de tratamiento de datos (Ley 1581 de 2012).
+- Guarda los documentos en GridFS (bucket `documentosCandidatos`); el candidato solo conserva su metadata.
+- La IA (OpenAI, salida con esquema JSON estricto y `store: false`) **propone** los datos de la hoja de vida y RRHH los confirma; las correcciones quedan registradas.
+- Evalúa al candidato frente a una vacante: formación, experiencia y certificaciones con reglas fijas; la IA solo valora las habilidades, con evidencia. Edad, género, estado civil, foto, origen, religión, discapacidad, salud e identificación no llegan a la IA ni al puntaje.
+- La evaluación es un apoyo: no cambia la etapa del candidato ni lo descarta. Solo RRHH y administración acceden al módulo.
+
 ## Seguridad
 
 - Firebase verifica identidad cuando se configura un proyecto real.
@@ -62,7 +76,7 @@ Se implementó un **monolito modular**: una sola aplicación web y una sola API,
 
 ## Persistencia y deuda conocida
 
-MongoDB es la opción persistente implementada. El repositorio en memoria permite demostración y pruebas reproducibles. Antes de producción se debe configurar MongoDB, usar Firebase real y mover los soportes desde documentos codificados a un almacenamiento privado de objetos con URLs firmadas.
+MongoDB es la opción persistente implementada; en la nube corre en MongoDB Atlas. El repositorio en memoria permite demostración y pruebas reproducibles. Las hojas de vida ya se guardan en GridFS; los soportes de viáticos siguen como documentos codificados y conviene moverlos a un almacenamiento privado de objetos con URLs firmadas. El plan gratuito de Atlas (M0) no tiene copias automáticas ([29 · Despliegue](29-Sprint-3-Despliegue.md)).
 
 ## Flujo de una solicitud de viaje
 

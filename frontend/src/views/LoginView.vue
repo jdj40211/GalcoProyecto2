@@ -4,7 +4,7 @@
       <div class="login-brand">
         <div class="login-logo-box"><img src="/logo-galco.png" alt="Galco" /></div>
         <h1 id="login-title">Suite de Operaciones</h1>
-        <p>Viáticos y cotización de postes</p>
+        <p>Cotización de postes, viáticos y hojas de vida</p>
       </div>
       <form class="login-card" @submit.prevent="submit">
         <div v-if="error" class="alert alert-danger" role="alert">

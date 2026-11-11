@@ -57,8 +57,15 @@ async function run() {
     async function contains(text) {
       await page.waitForFunction((value) => document.body.innerText.includes(value), {}, text);
     }
+    // Los avisos emergentes se ocultan solo durante la captura: en las evidencias tapaban el contenido.
     async function shot(name) {
-      await page.screenshot({ path: path.join(directory, name), fullPage: true });
+      await page
+        .addStyleTag({ content: '.toast-stack { visibility: hidden !important; }' })
+        .then((tag) =>
+          page
+            .screenshot({ path: path.join(directory, name), fullPage: true })
+            .finally(() => tag.evaluate((element) => element.remove()))
+        );
     }
     async function login(user, password) {
       await page.goto(`${url}/login`);

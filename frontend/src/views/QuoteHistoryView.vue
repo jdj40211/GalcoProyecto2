@@ -118,13 +118,6 @@
                   :to="`/cotizador/${c._id}/editar`"
                   >Editar</RouterLink
                 >
-                <button
-                  v-if="c.estado === 'borrador' && canModify(c)"
-                  class="btn btn-ghost btn-xs"
-                  @click="sending = c"
-                >
-                  Enviar por correo
-                </button>
               </td>
             </tr>
           </tbody>
@@ -171,15 +164,6 @@
         </div>
       </template>
     </BaseModal>
-
-    <BaseModal :open="Boolean(sending)" title="Enviar cotización" @close="sending = null">
-      <form @submit.prevent="send">
-        <label for="quote-recipient">Correo del cliente</label>
-        <input id="quote-recipient" v-model.trim="recipient" type="email" required />
-        <p>Se enviará el PDF de {{ sending?.consecutivo }}. El estado cambiará cuando el proveedor acepte el envío.</p>
-        <button class="btn btn-primary" :disabled="busy">Enviar cotización</button>
-      </form>
-    </BaseModal>
   </div>
 </template>
 
@@ -197,28 +181,14 @@ import { quoteStates, quoteTransitions } from '@/config/domain';
 
 const store = useCotizadorStore();
 const toast = useToastStore();
+// El envío por correo se descartó (HU-33, #71): la cotización se entrega como PDF descargado.
 const router = useRouter(),
-  busy = ref(false),
-  sending = ref(null),
-  recipient = ref('');
+  busy = ref(false);
 async function duplicate(c) {
   busy.value = true;
   try {
     const result = await http.post(`/cotizador/${c._id}/duplicar`);
     await router.push(`/cotizador/${result.data.data._id}/editar`);
-  } catch (err) {
-    toast.show(err.message, 'danger');
-  } finally {
-    busy.value = false;
-  }
-}
-async function send() {
-  busy.value = true;
-  try {
-    await http.post(`/cotizador/${sending.value._id}/enviar`, { destinatario: recipient.value });
-    sending.value = null;
-    await buscar();
-    toast.show('El proveedor aceptó el envío.', 'success');
   } catch (err) {
     toast.show(err.message, 'danger');
   } finally {
