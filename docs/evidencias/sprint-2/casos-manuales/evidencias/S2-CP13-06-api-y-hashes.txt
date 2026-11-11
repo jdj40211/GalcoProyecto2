@@ -1,0 +1,32 @@
+# Inicio de sesion demo de jdiaz
+$ curl -X POST http://127.0.0.1:3000/api/sesion -d '{"usuario":"jdiaz","password":"1234"}'
+HTTP 200
+{"user":{"uid":"dev-jdiaz","nombre":"Juan Díaz","usuario":"jdiaz","email":"jdiaz@demo.local","rol":"comercial","activo":true},"token":"<redactado>","expiresAt":1792549848906}
+
+# Viaticos de jdiaz
+$ curl -X GET http://127.0.0.1:3000/api/viaticos -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+{"items":[{"id":"6884c129-fbdf-4f98-9554-7bc27ba4d8dc","fecha":"2026-10-21","valor":150000,"subtotal":155462,"impuestos":29538,"nit":"901234567-8","numeroDocumento":"FE-1024","proveedor":"Proveedor de ejemplo S.A.S.","moneda":"COP","ciudad":"Medellín","metodoPago":"Tarjeta","tipoGasto":"alimentacion","concepto":"Almuerzo ejecutivo QA","observaciones":"","solicitudId":"6f6840f1-0f69-4d09-bf1d-c7be799cc959","estado":"pendiente_revision","usuario":"Juan Díaz","usuarioLogin":"jdiaz","nivelConfianza":"alta","confianzaCampos":{"fecha":"alta","valor":"alta","subtotal":"alta","impuestos":"alta","nit":"alta","numeroDocumento":"alta","proveedor":"alta","moneda":"alta","ciudad":"alta","metodoPago":"alta","tipoGasto":"alta","concepto":"alta"},"datosExtraidos":{"fecha":"2026-10-21","valor":185000,"subtotal":155462,"impuestos":29538,"nit":"901234567-8","numeroDocumento":"FE-1024","proveedor":"Proveedor de ejemplo S.A.S.","moneda":"COP","ciudad":"Medellín","metodoPago":"Tarjeta","tipoGasto":"alimentacion","concepto":"Alimentación durante visita comercial"},"correcciones":[{"campo":"valor","valorExtraido":185000,"valorCorregido":150000,"corregidoPor":"Juan Díaz","corregidoEn":"2026-10-21T01:30:56.027Z"},{"campo":"concepto","valorExtraido":"Alimentación durante visita comercial","valorCorregido":"Almuerzo ejecutivo QA","corregidoPor":"Juan Díaz","corregidoEn":"2026-10-21T01:30:56.028Z"}],"fileName":"comprobante-ficticio.png","fileType":"image/png","createdAt":"2026-10-21T01:30:56.033Z","updatedAt":"2026-10-21T01:30:56.033Z"}],"total":1}
+
+# Detalle del soporte guardado (sin fileDataUrl)
+$ curl -X GET http://127.0.0.1:3000/api/viaticos/6884c129-fbdf-4f98-9554-7bc27ba4d8dc -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+{"id":"6884c129-fbdf-4f98-9554-7bc27ba4d8dc","fecha":"2026-10-21","valor":150000,"subtotal":155462,"impuestos":29538,"nit":"901234567-8","numeroDocumento":"FE-1024","proveedor":"Proveedor de ejemplo S.A.S.","moneda":"COP","ciudad":"Medellín","metodoPago":"Tarjeta","tipoGasto":"alimentacion","concepto":"Almuerzo ejecutivo QA","observaciones":"","solicitudId":"6f6840f1-0f69-4d09-bf1d-c7be799cc959","estado":"pendiente_revision","usuario":"Juan Díaz","usuarioLogin":"jdiaz","nivelConfianza":"alta","confianzaCampos":{"fecha":"alta","valor":"alta","subtotal":"alta","impuestos":"alta","nit":"alta","numeroDocumento":"alta","proveedor":"alta","moneda":"alta","ciudad":"alta","metodoPago":"alta","tipoGasto":"alta","concepto":"alta"},"datosExtraidos":{"fecha":"2026-10-21","valor":185000,"subtotal":155462,"impuestos":29538,"nit":"901234567-8","numeroDocumento":"FE-1024","proveedor":"Proveedor de ejemplo S.A.S.","moneda":"COP","ciudad":"Medellín","metodoPago":"Tarjeta","tipoGasto":"alimentacion","concepto":"Alimentación durante visita comercial"},"correcciones":[{"campo":"valor","valorExtraido":185000,"valorCorregido":150000,"corregidoPor":"Juan Díaz","corregidoEn":"2026-10-21T01:30:56.027Z"},{"campo":"concepto","valorExtraido":"Alimentación durante visita comercial","valorCorregido":"Almuerzo ejecutivo QA","corregidoPor":"Juan Díaz","corregidoEn":"2026-10-21T01:30:56.028Z"}],"fileName":"comprobante-ficticio.png","fileType":"image/png","fileDataUrl":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAMgCAIAAABwAouTAAAQAElEQVR4nOzdebxV4////9UgjVKa06A0pyglyVBURCgpJd5IJDQZmiQlyVQoFM00KE2KRlKGJs2jSponzfOkfs/fvm6u7/rs6ewzhHOux/2Pc1t77XXWXnvtva/ndb2utc9Je+HCBQ8AAFel9gAAcBhBCABwGkEIAHAaQQgAcBpBCABwGkEIAHAaQQgAcBpBCABwGkEIAHAaQQgAcBpBCABwGkEIAHAaQQgAcBpBCABwGkEIAHAaQQgAcBpBCABwGkEIAHAaQQgAcFpaLxFSpUrlAQDwb7tw4YKXUIwIAQBOIwgBAE4jCAEATkvUHKFfYuqzAADEV1Jdp8KIEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOA0ghAA4DSCEADgNIIQAOC0tF5ysHv37k2bNvnXpE2bNnv27FdccUW2bNlCtz927NiKFSui7tLLnDlzuXLlglb++uuv69at+/3330+dOlWgQIErr7zypptu0qP4t5k/f/758+e9uOTKlevqq6/2r9E+lyxZEv0AtgWY5cKFC+fLl8/edfDgwbVr15rlnDlzFitWzIv/mYnXwezfv/+3336zN6tWrWqX//rrrwULFpjlQoUK5c+f34v/mdmxY8eWLVuib6w9a/9e/CXsPRB0WvyKFi2aO3due3PNmjWHDh3yoipVqpRehcOHD69evdquLFiwoN5XZvnPP//csGGDvatIkSJ58uTRwubNm3fu3OnfVaZMmbSrHDlyZMyYMfSBjhw5smrVKrOszfS4Xgz0Iur1Xbx4sQ5Pz+76668vU6ZMunTpvKRw5syZn376SR8lvT/Tp0+vp6z3sz5NWvaSwp49e7Rze1OfFO3fSyIHDhyYN2+ejlwfRp1PNQUlSpSoWLFi6tSMHFKm5BGEX3311fPPPx/2ruLFiz/66KNt2rRRS2FXLl269JZbbom6S6906dL+5knLL7zwwvTp00O3vPvuu994443y5ctrWQ39jTfe6MXgf//739ChQ/1rvvvuu3vuucfezJIliz5vyi3/Nv379+/Zs6dZfuedd1588UV71w8//FC/fn2z/OCDD44ZM8aL/5mJ18FMmzatadOm9qZ6CWoLzLIadzVqZrlHjx6dO3dOwJnRz1deeSX6xm3btu3du7cXfwl4D8gff/xhn1eQjz/++JlnnrE3ddq///57L6qJEyfed999al...[recortado en el registro]
+
+# Resumen de hashes y campos
+{
+  "hashOriginal": "bf47146bb448c347f26dcab11243c0f2a0036afc6bd4e3916b9e8d2b4dcf2b99",
+  "hashGuardadoEnServidor": "bf47146bb448c347f26dcab11243c0f2a0036afc6bd4e3916b9e8d2b4dcf2b99",
+  "originalConservado": true,
+  "hashEnviadoAlOCR": "38b3d3369c7bef7a89c39184a9625fb4821c4ada48765d4b631221c84fc97993",
+  "enviadoAlOCRDistintoDelOriginal": true,
+  "mimeEnviadoAlOCR": "image/jpeg",
+  "camposTrasOCR": {
+    "fecha": "2026-10-21",
+    "valor": "185000",
+    "nit": "901234567-8",
+    "documento": "FE-1024",
+    "proveedor": "Proveedor de ejemplo S.A.S.",
+    "concepto": "Alimentación durante visita comercial"
+  }
+}

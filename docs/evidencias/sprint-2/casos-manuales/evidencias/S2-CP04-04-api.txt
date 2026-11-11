@@ -1,0 +1,45 @@
+# Lista de usuarios (admin)
+$ curl -X GET http://127.0.0.1:3000/api/usuarios -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+[{"uid":"dev-jdiaz","nombre":"Juan Díaz","usuario":"jdiaz","email":"jdiaz@demo.local","rol":"comercial","activo":true},{"uid":"dev-lgomez","nombre":"Laura Gómez","usuario":"lgomez","email":"lgomez@demo.local","rol":"comercial","activo":true},{"uid":"dev-crueda","nombre":"Carlos Rueda","usuario":"crueda","email":"crueda@demo.local","rol":"comercial","activo":true},{"uid":"dev-acastro","nombre":"Andrés Castro","usuario":"acastro","email":"acastro@demo.local","rol":"contabilidad","activo":true},{"uid":"dev-admin","nombre":"Administrador demo","usuario":"admin","email":"admin@demo.local","rol":"admin","activo":true},{"uid":"19cf18a3-84a0-4579-9a5e-3eb22eb68ac4","nombre":"Comercial Prueba QA","usuario":"qa.comercial@example.com","email":"qa.comercial@example.com","rol":"comercial","activo":true}]
+
+# ANTES: la sesion de la cuenta nueva funciona
+$ curl -X GET http://127.0.0.1:3000/api/cotizador/configuraciones?q=cercha-6-12 -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+[{"codigo":"Cercha-6-12","nombre":"Poste Cercha 6 m / brazo 12 m","configuracion":{"tipoPoste":"Cercha","altura":6,"brazo":12,"pintura":false,"cantidad":1},"componentes":[{"id":"C1","nombre":"Placa base 40x40","areaM2":0.33,"pesoKg":15,"cantidad":2},{"id":"C2","nombre":"Cartela cuadrada","areaM2":0.03,"pesoKg":1.2,"cantidad":8},{"id":"C3","nombre":"Brida 6 perforaciones","areaM2":0.1,"pesoKg":2,"cantidad":16},{"id":"C4","nombre":"Tapa 6\"","areaM2":0.02,"pesoKg":0.1,"cantidad":2},{"id":"C5","nombre":"Ventanilla inspección","areaM2":0.08,"pesoKg":1,"cantidad":2},{"id":"C6","nombre":"Corona antiescalatoria","areaM2":0.08,"pesoKg":10,"cantidad":2},{"id":"C7","nombre":"Acople 3/4\"","areaM2":0.05,"pesoKg":0.1,"cantidad":4},{"id":"C8","nombre":"Acople 1\"","areaM2":0.05,"pesoKg":0.1,"cantidad":4},{"id":"C9","nombre":"Canastilla anclaje","areaM2":0,"pesoKg":3,"cantidad":2},{"id":"C10","nombre":"Placa identificación","areaM2":0,"pesoKg":0.5,"cantidad":2}],"tubos":{"VERTICAL_6":{"tipo":"Vertical","diametro":"6\"","diametroMetros":0.1524,"costoPorTramo6m":600000,"pesoPorMetro":14.9},"HORIZONTAL_4":{"tipo":"Horizontal","diametro":"4\"","diametroMetros":0.1143,"costoPorTramo6m":247575,"pesoPorMetro":8.35},"HORIZONTAL_3":{"tipo":"Horizontal","diametro":"3\"","diametroMetros":0.089,"costoPorTramo6m":173376,"pesoPorMetro":6.47},"DIAGONAL_2":{"tipo":"Diagonal","diametro":"2\"","diametroMetrosCercha":0.0508,"diametroMetrosBrazoCercha":0.06,"costoPorTramo6m":117376,"pesoPorMetro":4.33}},"acabado":"Galvanizado; pintura opcional","especificacionPendiente":"Espesor y grado del acero requieren ficha técnica validada por GALCO.","activo":true}]
+
+# DESPUES: la misma sesion ya no debe servir
+$ curl -X GET http://127.0.0.1:3000/api/cotizador/configuraciones?q=cercha-6-12 -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 401
+{"statusCode":401,"error":"Unauthorized","message":"Sesión inválida o expirada."}
+
+# DESPUES: nuevo login de la cuenta desactivada
+$ curl -X POST http://127.0.0.1:3000/api/sesion -d '{"usuario":"qa.comercial@example.com","password":"<contraseña-de-prueba>"}'
+HTTP 401
+{"statusCode":401,"error":"Unauthorized","message":"Usuario o contraseña incorrectos."}
+
+# Inicio de sesion demo de jdiaz
+$ curl -X POST http://127.0.0.1:3000/api/sesion -d '{"usuario":"jdiaz","password":"1234"}'
+HTTP 200
+{"user":{"uid":"dev-jdiaz","nombre":"Juan Díaz","usuario":"jdiaz","email":"jdiaz@demo.local","rol":"comercial","activo":true},"token":"<redactado>","expiresAt":1792549476987}
+
+# Comercial intenta listar usuarios
+$ curl -X GET http://127.0.0.1:3000/api/usuarios -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 403
+{"statusCode":403,"error":"Forbidden","message":"Insufficient scope"}
+
+# Comercial intenta crear usuario
+$ curl -X POST http://127.0.0.1:3000/api/usuarios -H "Authorization: Bearer <token-sesion-demo>" -d '{"nombre":"Intruso","email":"intruso@example.com","password":"<contraseña-de-prueba>","rol":"admin"}'
+HTTP 403
+{"statusCode":403,"error":"Forbidden","message":"Insufficient scope"}
+
+# Comercial intenta desactivar al admin
+$ curl -X PATCH http://127.0.0.1:3000/api/usuarios/dev-admin/activo -H "Authorization: Bearer <token-sesion-demo>" -d '{"activo":false}'
+HTTP 403
+{"statusCode":403,"error":"Forbidden","message":"Insufficient scope"}
+
+# Complemento: admin intenta desactivarse a si mismo
+$ curl -X PATCH http://127.0.0.1:3000/api/usuarios/dev-admin/activo -H "Authorization: Bearer <token-sesion-demo>" -d '{"activo":false}'
+HTTP 409
+{"statusCode":409,"error":"Conflict","message":"No puedes desactivar tu propia cuenta."}
+

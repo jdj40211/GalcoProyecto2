@@ -1,0 +1,20 @@
+# Inicio de sesion demo de jdiaz
+$ curl -X POST http://127.0.0.1:3000/api/sesion -d '{"usuario":"jdiaz","password":"1234"}'
+HTTP 200
+{"user":{"uid":"dev-jdiaz","nombre":"Juan Díaz","usuario":"jdiaz","email":"jdiaz@demo.local","rol":"comercial","activo":true},"token":"<redactado>","expiresAt":1792549902033}
+
+# Soporte S2 (pendiente) asociado al viaje R3 ya legalizado
+$ curl -X GET http://127.0.0.1:3000/api/viaticos/3cb891b2-61cf-42e4-ab12-6be46b4a69cf -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 200
+{"id":"3cb891b2-61cf-42e4-ab12-6be46b4a69cf","usuario":"Juan Díaz","usuarioLogin":"jdiaz","fecha":"2026-10-20","valor":40000,"tipoGasto":"transporte","concepto":"Soporte pendiente QA","moneda":"COP","solicitudId":"6f6840f1-0f69-4d09-bf1d-c7be799cc959","confianzaCampos":{},"datosExtraidos":{},"correcciones":[],"estado":"pendiente_revision","createdAt":"2026-10-21T01:30:56.627Z","updatedAt":"2026-10-21T01:30:56.627Z"}
+
+# Intento de borrarlo
+$ curl -X DELETE http://127.0.0.1:3000/api/viaticos/3cb891b2-61cf-42e4-ab12-6be46b4a69cf -H "Authorization: Bearer <token-sesion-demo>"
+HTTP 409
+{"statusCode":409,"error":"Conflict","message":"El soporte forma parte de una legalización cerrada."}
+
+# Intento de editar concepto
+$ curl -X PUT http://127.0.0.1:3000/api/viaticos/3cb891b2-61cf-42e4-ab12-6be46b4a69cf -H "Authorization: Bearer <token-sesion-demo>" -d '{"concepto":"Corregido"}'
+HTTP 409
+{"statusCode":409,"error":"Conflict","message":"El soporte forma parte de una legalización cerrada."}
+

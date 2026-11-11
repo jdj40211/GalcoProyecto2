@@ -1,0 +1,2 @@
+2026-10-21T01:32:32.581Z id=MOCK-1 to=cliente.mock@example.com subject=Cotización GALCO COT-2026-0001 adjunto=COT-2026-0001.pdf tipo=application/pdf bytes=102028
+2026-10-21T01:32:39.506Z id=MOCK-2 to=cliente.mock2@example.com subject=Cotización GALCO COT-2026-0002 adjunto=COT-2026-0002.pdf tipo=application/pdf bytes=101808
