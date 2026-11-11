@@ -24,8 +24,9 @@ Está publicada en https://galco-suite.onrender.com.
 
 En Hojas de vida la IA solo propone: Recursos Humanos confirma los datos y la evaluación es un apoyo que no
 descarta a nadie ni cambia su etapa. Antes de enviar una hoja de vida a la IA se registra la autorización de
-tratamiento de datos (Ley 1581 de 2012). La búsqueda, el perfil consolidado y las etapas de selección
-(HU-15, HU-16, HU-18) siguen en el Product Backlog.
+tratamiento de datos (Ley 1581 de 2012). Quedan fuera, en el milestone Sprint 4 (hipotético), la búsqueda y
+filtros de candidatos (HU-15), la actualización (HU-17), la gestión de etapas (HU-18) y los reportes (HU-19). La
+consulta de perfil (HU-16) falta validarla contra sus criterios.
 
 El envío de cotizaciones por correo se descartó por decisión del equipo (HU-33, #71): la cotización se entrega
 como PDF descargado desde el historial. La recuperación de contraseña sí envía correo, a través de Firebase.
@@ -39,7 +40,7 @@ Documentación del Sprint 3:
 - [Casos de prueba funcionales](docs/wiki/32-Sprint-3-Pruebas-funcionales.md)
 - [Pruebas automáticas](docs/wiki/33-Sprint-3-Pruebas-automaticas.md)
 - [Pruebas de usabilidad](docs/wiki/34-Sprint-3-Pruebas-usabilidad.md)
-- [Ceremonias y cierre](docs/wiki/36-Sprint-3-Ceremonias-y-cierre.md)
+- [Ceremonias y cierre](docs/wiki/36-Sprint-3-Ceremonias-y-cierre.md) y [actas](docs/ceremonias/sprint-3/README.md)
 - [Sustentación](docs/wiki/37-Sprint-3-Sustentacion.md)
 
 Administrador demo: `admin` / `AdminDemo2026!`. Las sesiones demo se validan
@@ -88,7 +89,7 @@ npm run verify
 
 La verificación ejecuta formato, ESLint, pruebas, compilación y auditoría de dependencias. GitHub Actions está configurado para repetir los controles en cada Pull Request a `main` y CodeQL para analizar seguridad, pero hoy no se ejecuta porque la cuenta dueña del repositorio está bloqueada por facturación: los controles se corren con `npm run verify` antes de cada PR.
 
-El informe de la entrega anterior está en [Resultados Sprint 2](docs/evidencias/sprint-2/RESULTADOS.md).
+El último informe de resultados registrado es [Resultados Sprint 2](docs/evidencias/sprint-2/RESULTADOS.md). El del Sprint 3 está pendiente (ver el checklist de la [página 36 de la Wiki](docs/wiki/36-Sprint-3-Ceremonias-y-cierre.md)).
 El frontend fija `@grpc/grpc-js` 1.14.6 mediante `overrides` porque el paquete
 Firebase incluye una versión transitiva con alertas de seguridad. El backend
 conserva alertas moderadas transitivas de Firebase Admin; su actualización mayor
@@ -142,7 +143,9 @@ La documentación completa está en [`docs/wiki/`](docs/wiki) y puede sincroniza
 
 ## Estado honesto de cierre
 
-El código del Sprint 3 está en `main` y desplegado en Render. Para declarar el Sprint cerrado aún se requieren
-los resultados de las pruebas de usabilidad, la evidencia real de las ceremonias, la ejecución manual de los casos
-funcionales, la verificación manual del despliegue (#70), la aceptación del Product Owner y la revisión de un
-compañero en los Pull Request. GitHub Actions no corre mientras la cuenta dueña siga bloqueada por facturación.
+El código del Sprint 3 está en `main` y desplegado en Render (verificar con la prueba de humo que el despliegue
+incluye lo último de `main`). Para declarar el Sprint cerrado aún se requieren los resultados de las pruebas de
+usabilidad, la evidencia real de las ceremonias, la ejecución manual de los casos funcionales, la verificación
+manual del despliegue (#70), la aceptación del Product Owner y la revisión de un compañero en los Pull Request.
+Las historias que no se terminaron están en el milestone Sprint 4 (hipotético). GitHub Actions no corre mientras
+la cuenta dueña siga bloqueada por facturación.

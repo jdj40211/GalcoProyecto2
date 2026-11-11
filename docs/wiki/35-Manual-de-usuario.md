@@ -88,7 +88,7 @@ Las configuraciones **Inactivas** se ven, pero no se pueden cotizar.
 
 ### 2.3 Historial, variantes y estados
 
-Menú **Historial de cotizaciones** (para Comercial se llama **Mis cotizaciones**: solo ve las suyas).
+Menú **Historial de cotizaciones** (para Comercial la pantalla se titula **Mis cotizaciones**: solo ve las suyas).
 
 - Filtre por cliente o estado.
 - **PDF:** descarga el PDF de esa cotización.
@@ -151,7 +151,7 @@ La lectura automática **propone** los datos; usted es responsable de confirmarl
 
 ### 3.1 Aprobar o rechazar solicitudes de viaje
 
-1. Menú **Solicitudes de viaje** (para Contabilidad se llama **Solicitudes por aprobar**).
+1. Menú **Solicitudes de viaje** (para Contabilidad la pantalla se titula **Solicitudes por aprobar**).
 2. Revise destino, fechas, motivo y total.
 3. Use **Aprobar solicitud** o **Rechazar solicitud**. Al rechazar, escriba un motivo claro: el solicitante lo verá en sus notificaciones.
 
@@ -335,4 +335,4 @@ Soporte: **Pendiente del equipo:** indicar a quién escribir dentro de GALCO o d
 
 ---
 
-> **Pendiente del equipo:** (1) el documento maestro pide una "demostración interactiva del manual" en la sustentación: preparar el recorrido (ver [37](37-Sprint-3-Sustentacion.md)). (2) Si se quiere un video, grabarlo sobre la URL desplegada con datos ficticios y enlazarlo aquí. (3) Volver a tomar las capturas `07`, `08` y `09` sin los avisos acumulados en la esquina superior derecha, que vienen del recorrido automático.
+> **Pendiente del equipo:** (1) el documento maestro pide una "demostración interactiva del manual" en la sustentación: preparar el recorrido (ver [37](37-Sprint-3-Sustentacion.md)). (2) Si se quiere un video, grabarlo sobre la URL desplegada con datos ficticios y enlazarlo aquí.
