@@ -190,6 +190,8 @@ async function createCotizacion(request, h) {
       costos: resultado.costos,
       precios: resultado.precios,
       parametrosAplicados: resultado.parametros,
+      // Bug #63: toda cotización nace en la versión 1; editarla la sube (editQuote).
+      version: 1,
       metadata: {
         cliente: metadata.cliente,
         observaciones: metadata.observaciones || '',
