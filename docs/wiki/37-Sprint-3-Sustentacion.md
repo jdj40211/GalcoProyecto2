@@ -22,8 +22,8 @@ Dos presentaciones, según el documento maestro: una **review tipo pitch para el
 1. Abrir https://galco-suite.onrender.com e iniciar sesión como RRHH: el menú solo muestra Candidatos y Vacantes.
 2. **Vacantes:** mostrar "Soldador" con sus criterios y pesos que suman 100.
 3. **Candidatos:** elegir la vacante, subir dos hojas de vida, marcar la autorización (Ley 1581) y "Analizar hojas de vida".
-4. **Revisar:** señalar la confianza por dato y un campo "Pendiente"; corregir un dato; "Confirmar datos". Frase clave: *"La IA propone; ustedes deciden. Nada se guarda sin su confirmación."*
-5. **Ranking:** abrir el detalle; mostrar el aporte por criterio, la evidencia de cada habilidad y un requisito obligatorio en rojo. Frase clave: *"El puntaje ordena a quién revisar primero; no descarta a nadie ni cambia su etapa. La IA no ve edad, género, foto ni datos de identificación."*
+4. **Revisar:** señalar la confianza por dato y un campo "Pendiente"; corregir un dato; "Confirmar datos". Frase clave: _"La IA propone; ustedes deciden. Nada se guarda sin su confirmación."_
+5. **Ranking:** abrir el detalle; mostrar el aporte por criterio, la evidencia de cada habilidad y un requisito obligatorio en rojo. Frase clave: _"El puntaje ordena a quién revisar primero; no descarta a nadie ni cambia su etapa. La IA no ve edad, género, foto ni datos de identificación."_
 6. Cambiar a Comercial (30 s): cotización y "Descargar PDF".
 
 **Deudas y pendientes (1 min), dichas con claridad:**
@@ -37,14 +37,14 @@ Dos presentaciones, según el documento maestro: una **review tipo pitch para el
 
 ## Profesor (10–12 minutos)
 
-| Área (documento maestro) | Tiempo | Contenido                                                                                                                                                                                                 | Página de apoyo |
-| ------------------------ | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
-| Desarrollo de código     | 3 min  | Demo del flujo de RRHH (pasos 3–5 del pitch, más rápido). Mostrar un PR (por ejemplo #78) con su trazabilidad HU → CA → pruebas y la tabla de principios del analizador                                    | [30](30-Sprint-3-Alcance-y-trazabilidad.md), [33](33-Sprint-3-Pruebas-automaticas.md) |
-| Despliegue               | 2 min  | Abrir la URL pública; explicar Render + Docker + Atlas + Firebase + OpenAI con el diagrama; secretos solo en Render; health check y *rollback*; prueba de humo (6/6, PR #80)                            | [29](29-Sprint-3-Despliegue.md) |
-| Caso de negocio          | 2 min  | Sección 6: viabilidad técnica demostrada, operativa condicionada, costo del piloto (320.000 COP/mes de mantenimiento supuesto + consumo) y punto de equilibrio de 20 a 41 horas ahorradas al mes. Conclusión y recomendación de piloto | [31](31-Sprint-3-Caso-de-negocio-final.md) |
-| Pruebas de usabilidad    | 2 min  | Participantes, tareas, tasas de éxito, tiempos, satisfacción, hallazgos y ajustes aplicados o planeados                                                                                                  | [34](34-Sprint-3-Pruebas-usabilidad.md) |
-| Manual de usuario        | 2 min  | Demostración interactiva: abrir el manual en la Wiki, elegir la sección de RRHH y seguir 4.2–4.3 en la aplicación en vivo                                                                                   | [35](35-Manual-de-usuario.md) |
-| Cierre                   | 1 min  | Deuda, backlog actualizado y lo que se haría en un Sprint 4                                                                                                                                               | [36](36-Sprint-3-Ceremonias-y-cierre.md) |
+| Área (documento maestro) | Tiempo | Contenido                                                                                                                                                                                                                              | Página de apoyo                                                                       |
+| ------------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Desarrollo de código     | 3 min  | Demo del flujo de RRHH (pasos 3–5 del pitch, más rápido). Mostrar un PR (por ejemplo #78) con su trazabilidad HU → CA → pruebas y la tabla de principios del analizador                                                                | [30](30-Sprint-3-Alcance-y-trazabilidad.md), [33](33-Sprint-3-Pruebas-automaticas.md) |
+| Despliegue               | 2 min  | Abrir la URL pública; explicar Render + Docker + Atlas + Firebase + OpenAI con el diagrama; secretos solo en Render; health check y _rollback_; prueba de humo (6/6, PR #80)                                                           | [29](29-Sprint-3-Despliegue.md)                                                       |
+| Caso de negocio          | 2 min  | Sección 6: viabilidad técnica demostrada, operativa condicionada, costo del piloto (320.000 COP/mes de mantenimiento supuesto + consumo) y punto de equilibrio de 20 a 41 horas ahorradas al mes. Conclusión y recomendación de piloto | [31](31-Sprint-3-Caso-de-negocio-final.md)                                            |
+| Pruebas de usabilidad    | 2 min  | Participantes, tareas, tasas de éxito, tiempos, satisfacción, hallazgos y ajustes aplicados o planeados                                                                                                                                | [34](34-Sprint-3-Pruebas-usabilidad.md)                                               |
+| Manual de usuario        | 2 min  | Demostración interactiva: abrir el manual en la Wiki, elegir la sección de RRHH y seguir 4.2–4.3 en la aplicación en vivo                                                                                                              | [35](35-Manual-de-usuario.md)                                                         |
+| Cierre                   | 1 min  | Deuda, backlog actualizado y lo que se haría en un Sprint 4                                                                                                                                                                            | [36](36-Sprint-3-Ceremonias-y-cierre.md)                                              |
 
 > **Pendiente del equipo:** el bloque de usabilidad solo se puede presentar con resultados reales. Si las sesiones no se hicieron, decirlo explícitamente; no presentar los umbrales del protocolo como resultados.
 
@@ -58,22 +58,22 @@ Qué **no** afirmar:
 
 ## Preguntas probables
 
-| Pregunta                                                   | Respuesta corta                                                                                                                                                   |
-| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ¿Cómo evitan que la IA discrimine?                          | Formación, experiencia y certificaciones se calculan con reglas fijas; la IA solo valora habilidades con evidencia y no recibe nombre, identificación, contacto ni ciudad; la evaluación no descarta ni cambia la etapa; hay prueba automática (`evaluaciones.test.js:253`) |
-| ¿Qué pasa si OpenAI no responde?                           | El archivo y el candidato quedan intactos; el registro manual sigue disponible; en la evaluación se calculan los criterios medibles y habilidades queda pendiente   |
-| ¿OpenAI guarda las hojas de vida?                          | Se envían con `store: false` (`backend/utils/openai.js:49`) y solo con autorización de tratamiento de datos                                                         |
-| ¿Por qué Render y no otra nube?                            | Despliegue desde el repositorio con Docker, HTTPS incluido, health check y *rollback*, y plan gratuito suficiente para el piloto (47 MB en reposo de 512 MB)       |
-| ¿Por qué descartaron el correo?                            | Decisión del equipo (#71): la cotización se entrega como PDF descargado. *Pendiente del equipo:* explicar el motivo de la decisión                                 |
-| ¿Cómo prueban sin gastar en OpenAI?                         | Proveedor de IA sustituido en las pruebas automáticas: se prueba éxito, error, tiempo agotado y qué se envía, sin llamadas reales                                   |
+| Pregunta                            | Respuesta corta                                                                                                                                                                                                                                                             |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ¿Cómo evitan que la IA discrimine?  | Formación, experiencia y certificaciones se calculan con reglas fijas; la IA solo valora habilidades con evidencia y no recibe nombre, identificación, contacto ni ciudad; la evaluación no descarta ni cambia la etapa; hay prueba automática (`evaluaciones.test.js:253`) |
+| ¿Qué pasa si OpenAI no responde?    | El archivo y el candidato quedan intactos; el registro manual sigue disponible; en la evaluación se calculan los criterios medibles y habilidades queda pendiente                                                                                                           |
+| ¿OpenAI guarda las hojas de vida?   | Se envían con `store: false` (`backend/utils/openai.js:49`) y solo con autorización de tratamiento de datos                                                                                                                                                                 |
+| ¿Por qué Render y no otra nube?     | Despliegue desde el repositorio con Docker, HTTPS incluido, health check y _rollback_, y plan gratuito suficiente para el piloto (47 MB en reposo de 512 MB)                                                                                                                |
+| ¿Por qué descartaron el correo?     | Decisión del equipo (#71): la cotización se entrega como PDF descargado. _Pendiente del equipo:_ explicar el motivo de la decisión                                                                                                                                          |
+| ¿Cómo prueban sin gastar en OpenAI? | Proveedor de IA sustituido en las pruebas automáticas: se prueba éxito, error, tiempo agotado y qué se envía, sin llamadas reales                                                                                                                                           |
 
 ## Reparto (equipo debe completar)
 
-| Bloque                                   | Responsable | Estado          |
-| ---------------------------------------- | ----------- | --------------- |
-| Pitch al cliente y demo de RRHH          | Por asignar | Guion listo     |
-| Desarrollo de código y pruebas           | Por asignar | Guion listo     |
-| Despliegue                               | Por asignar | Guion listo     |
-| Caso de negocio                          | Por asignar | Completar cifras pendientes |
-| Pruebas de usabilidad                    | Por asignar | Requiere resultados reales |
-| Manual de usuario (demo interactiva)     | Por asignar | Guion listo     |
+| Bloque                               | Responsable | Estado                      |
+| ------------------------------------ | ----------- | --------------------------- |
+| Pitch al cliente y demo de RRHH      | Por asignar | Guion listo                 |
+| Desarrollo de código y pruebas       | Por asignar | Guion listo                 |
+| Despliegue                           | Por asignar | Guion listo                 |
+| Caso de negocio                      | Por asignar | Completar cifras pendientes |
+| Pruebas de usabilidad                | Por asignar | Requiere resultados reales  |
+| Manual de usuario (demo interactiva) | Por asignar | Guion listo                 |

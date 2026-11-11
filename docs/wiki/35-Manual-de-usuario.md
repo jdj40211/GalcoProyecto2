@@ -20,12 +20,12 @@ Guía para las personas de GALCO que usan la Suite: **Comercial**, **Contabilida
 
 ## Qué ve cada rol
 
-| Rol              | Al entrar llega a        | Menú                                                                                                                     |
-| ---------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| Comercial        | Subir comprobante        | **Viáticos:** Solicitudes de viaje, Notificaciones, Legalizar viaje, Subir comprobante, Validar datos, Historial. **Cotizador:** Catálogo de postes, Nueva cotización, Historial de cotizaciones, Indicadores |
-| Contabilidad     | Panel de contabilidad    | **Viáticos:** Solicitudes de viaje, Notificaciones, Panel de contabilidad, Dashboard. **Cotizador:** las mismas cuatro opciones |
-| Recursos Humanos | Candidatos               | **Hojas de vida:** Candidatos, Vacantes                                                                                  |
-| Administración   | Usuarios                 | **Administración:** Usuarios. **Hojas de vida:** Candidatos, Vacantes                                                     |
+| Rol              | Al entrar llega a     | Menú                                                                                                                                                                                                          |
+| ---------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Comercial        | Subir comprobante     | **Viáticos:** Solicitudes de viaje, Notificaciones, Legalizar viaje, Subir comprobante, Validar datos, Historial. **Cotizador:** Catálogo de postes, Nueva cotización, Historial de cotizaciones, Indicadores |
+| Contabilidad     | Panel de contabilidad | **Viáticos:** Solicitudes de viaje, Notificaciones, Panel de contabilidad, Dashboard. **Cotizador:** las mismas cuatro opciones                                                                               |
+| Recursos Humanos | Candidatos            | **Hojas de vida:** Candidatos, Vacantes                                                                                                                                                                       |
+| Administración   | Usuarios              | **Administración:** Usuarios. **Hojas de vida:** Candidatos, Vacantes                                                                                                                                         |
 
 Cada persona solo ve las opciones de su rol. Si abre una dirección de otro módulo, la aplicación lo devuelve a su inicio.
 
@@ -303,35 +303,35 @@ Administración tiene acceso completo a **Candidatos** y **Vacantes**, con las m
 
 ## 6. Preguntas frecuentes y problemas comunes
 
-| Situación                                                          | Qué hacer                                                                                                                                 |
-| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| La aplicación tarda en abrir                                       | Espere cerca de un minuto: el servicio se estaba "despertando" tras 15 minutos sin uso                                                    |
-| "No tiene un rol asignado" al iniciar sesión                       | Pida a Administración que le asigne un rol                                                                                                |
-| Me sacó de la aplicación                                           | Pasaron 30 minutos sin actividad. Inicie sesión de nuevo                                                                                  |
-| "Enviar por correo" muestra un error                               | El envío por correo no está habilitado. Descargue el PDF y envíelo por su cuenta                                                          |
-| El PDF de la cotización tiene la nota de AIU sin cifras            | Error conocido (#63) en corrección. Informe a Contabilidad antes de enviar                                                                |
-| "Analizar con IA" está deshabilitado                               | El candidato no tiene registrada la autorización de datos, o el archivo es DOC. Use el registro manual                                     |
-| La hoja de vida no se pudo analizar                                | Revise que sea PDF o DOCX legible de hasta 10 MB. Si la IA no responde, inténtelo más tarde o regístrelo manualmente                     |
-| No aparece la vacante al subir hojas de vida                       | Solo se listan vacantes **abiertas**. Revise en Vacantes si está cerrada                                                                  |
-| "El candidato ya existe"                                           | Ya hay un candidato con esa identificación o ese correo. Búsquelo en Candidatos registrados                                               |
-| Los pesos de la vacante no dejan guardar                           | Deben sumar exactamente 100; el mensaje indica cuántos puntos faltan o sobran                                                             |
-| Un comprobante no se reconoce bien                                 | Use **Ajustar la imagen manualmente** y vuelva a procesar; siempre puede corregir los campos a mano                                       |
+| Situación                                               | Qué hacer                                                                                                            |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| La aplicación tarda en abrir                            | Espere cerca de un minuto: el servicio se estaba "despertando" tras 15 minutos sin uso                               |
+| "No tiene un rol asignado" al iniciar sesión            | Pida a Administración que le asigne un rol                                                                           |
+| Me sacó de la aplicación                                | Pasaron 30 minutos sin actividad. Inicie sesión de nuevo                                                             |
+| "Enviar por correo" muestra un error                    | El envío por correo no está habilitado. Descargue el PDF y envíelo por su cuenta                                     |
+| El PDF de la cotización tiene la nota de AIU sin cifras | Error conocido (#63) en corrección. Informe a Contabilidad antes de enviar                                           |
+| "Analizar con IA" está deshabilitado                    | El candidato no tiene registrada la autorización de datos, o el archivo es DOC. Use el registro manual               |
+| La hoja de vida no se pudo analizar                     | Revise que sea PDF o DOCX legible de hasta 10 MB. Si la IA no responde, inténtelo más tarde o regístrelo manualmente |
+| No aparece la vacante al subir hojas de vida            | Solo se listan vacantes **abiertas**. Revise en Vacantes si está cerrada                                             |
+| "El candidato ya existe"                                | Ya hay un candidato con esa identificación o ese correo. Búsquelo en Candidatos registrados                          |
+| Los pesos de la vacante no dejan guardar                | Deben sumar exactamente 100; el mensaje indica cuántos puntos faltan o sobran                                        |
+| Un comprobante no se reconoce bien                      | Use **Ajustar la imagen manualmente** y vuelva a procesar; siempre puede corregir los campos a mano                  |
 
 Soporte: **Pendiente del equipo:** indicar a quién escribir dentro de GALCO o del equipo del proyecto (nombre del cargo y canal), sin publicar correos personales.
 
 ## 7. Glosario
 
-| Término                  | Significado                                                                                     |
-| ------------------------ | ----------------------------------------------------------------------------------------------- |
-| AIU                      | Administración, imprevistos y utilidad: porcentajes que se suman al costo para el precio final  |
-| Borrador                 | Registro guardado que aún se puede editar                                                       |
-| Variante                 | Copia independiente de una cotización para ofrecer una alternativa                              |
-| OCR                      | Lectura automática del texto de una imagen o PDF                                                |
-| Legalizar                | Comparar el anticipo de un viaje con los gastos soportados y cerrar el viaje                    |
-| Pendiente de revisión    | Candidato cuya hoja de vida ya analizó la IA, pero cuyos datos RRHH aún no confirma             |
-| Confianza                | Qué tan seguro está el sistema de un dato que propuso: alta, media o pendiente                  |
-| Requisito obligatorio    | Condición de la vacante (formación, experiencia o certificación obligatoria) que se marca en rojo si no se cumple |
-| Ranking                  | Lista de candidatos de una vacante ordenada por puntaje                                         |
+| Término               | Significado                                                                                                       |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| AIU                   | Administración, imprevistos y utilidad: porcentajes que se suman al costo para el precio final                    |
+| Borrador              | Registro guardado que aún se puede editar                                                                         |
+| Variante              | Copia independiente de una cotización para ofrecer una alternativa                                                |
+| OCR                   | Lectura automática del texto de una imagen o PDF                                                                  |
+| Legalizar             | Comparar el anticipo de un viaje con los gastos soportados y cerrar el viaje                                      |
+| Pendiente de revisión | Candidato cuya hoja de vida ya analizó la IA, pero cuyos datos RRHH aún no confirma                               |
+| Confianza             | Qué tan seguro está el sistema de un dato que propuso: alta, media o pendiente                                    |
+| Requisito obligatorio | Condición de la vacante (formación, experiencia o certificación obligatoria) que se marca en rojo si no se cumple |
+| Ranking               | Lista de candidatos de una vacante ordenada por puntaje                                                           |
 
 ---
 
