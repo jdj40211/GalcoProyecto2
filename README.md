@@ -94,7 +94,7 @@ auditoría bloquea alertas altas y críticas.
 
 ## Aplicación desplegada
 
-**URL:** _se completa después del primer despliegue en Render_.
+**URL:** https://galco-suite.onrender.com — plan gratuito de Render: si nadie la usó en los últimos 15 minutos, la primera carga tarda cerca de un minuto.
 
 La aplicación corre en Render (Docker) con MongoDB Atlas, Firebase Authentication y OpenAI. El proceso completo,
 las variables de entorno, la verificación y la reversión están en
