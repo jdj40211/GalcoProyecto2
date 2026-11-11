@@ -20,11 +20,11 @@ Estado en GitHub al 10 de noviembre de 2026 (hora de Colombia), después de que 
 
 ### Milestones
 
-| Milestone             | Estado  | Contenido                                                                              |
-| --------------------- | ------- | -------------------------------------------------------------------------------------- |
-| Sprint 2              | Cerrado | Sin issues abiertos                                                                    |
-| Sprint 3              | Abierto | Solo #70 (HU-32) y #65 (EP-05); se cierra cuando se registre la verificación manual    |
-| Sprint 4 (hipotético) | Abierto | #19, #20, #21, #22, #23 (Hojas de vida), #8, #10, #29 (deuda del Sprint 2) y #63 (bug) |
+| Milestone             | Estado  | Contenido                                                                                                                |
+| --------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Sprint 2              | Cerrado | Sin issues abiertos                                                                                                      |
+| Sprint 3              | Abierto | Abiertos solo #70 (HU-32) y #65 (EP-05); se cierra cuando se registre la verificación manual. Incluye el #63, ya cerrado |
+| Sprint 4 (hipotético) | Abierto | #19, #20, #21, #22, #23 (Hojas de vida), #8, #10 y #29 (deuda del Sprint 2)                                              |
 
 ### Sprint 3
 
@@ -34,7 +34,7 @@ Estado en GitHub al 10 de noviembre de 2026 (hora de Colombia), después de que 
 | #70 HU-32                | Abierto, con comentario de evidencia | Ejecutar S3-CP34 a S3-CP37 sobre la URL desplegada y cerrar si pasan                                                                   |
 | #71 HU-33                | Cerrado "not planned"                | Ninguna. La decisión está registrada en el acta de refinamiento                                                                        |
 | #19, #20, #22            | Movidos al Sprint 4                  | Ninguna                                                                                                                                |
-| #63 bug PDF              | Movido al Sprint 4                   | Existe el PR #83 con el arreglo, sin fusionar. Si se fusiona, cerrar el issue y sacarlo del Sprint 4                                   |
+| #63 bug PDF              | Cerrado (PR #83), hito Sprint 3      | Ninguna. Se corrigió en el Sprint 3 y volvió a su milestone                                                                            |
 | #65 EP-05                | Abierto                              | Cerrar cuando se cierre #70                                                                                                            |
 | #3 EP-03                 | Abierto                              | Sigue abierto (HU-15 a HU-19 pendientes). Su único comentario corresponde al cierre de HU-03 y parece publicado en el issue equivocado |
 

@@ -136,7 +136,7 @@ Los niveles se leen en la matriz del documento maestro del Sprint 2.
 | ¿La IA es técnicamente controlable?                          | Salidas con esquema JSON estricto, tiempo máximo de 45 s, errores legibles, y un camino manual cuando la IA falla (HU-28 CA5, HU-30 CA7, HU-34 CA3)                                               |
 | ¿Cabe en la infraestructura del piloto?                      | El contenedor usa unos 47 MB en reposo frente a 512 MB disponibles; Chromium generó un PDF en 2,6 s dentro del contenedor ([29](29-Sprint-3-Despliegue.md))                                       |
 
-Limitaciones técnicas reconocidas: CI inactivo (R15), plan gratuito (R14), bug #63 en el PDF y verificación manual de HU-32 en la nube aún pendiente.
+Limitaciones técnicas reconocidas: CI inactivo (R15), plan gratuito (R14) y verificación manual de HU-32 en la nube aún pendiente.
 
 ### 6.2 Viabilidad operativa
 
@@ -171,6 +171,6 @@ Como referencia externa, no medida en GALCO: la [Wiki 02](02-Problematica-y-cifr
 1. **Técnicamente el proyecto es viable y está demostrado:** la Suite funciona en una nube pública con servicios reales, tiene pruebas automáticas y procedimientos documentados de despliegue y reversión.
 2. **Operativamente es viable bajo condiciones** que no dependen del código: resultados de usabilidad, ratificación de criterios por RRHH, aceptación del PDF descargado como canal de entrega y un responsable de la operación.
 3. **Económicamente el costo es bajo y acotado:** 320.000 COP/mes más consumo en el piloto, y unos 820.000 COP/mes más consumo en operación productiva (supuestos). El beneficio requiere entre 20 y 41 horas ahorradas al mes según el costo hora, umbral razonable pero no medido.
-4. **Recomendación:** continuar con un **piloto controlado** en GALCO que mida la línea base y el uso real antes de pasar a un plan pago, y resolver antes el bug #63, la verificación de HU-32 y las HU-15/16/18 que completan el módulo de Hojas de vida.
+4. **Recomendación:** continuar con un **piloto controlado** en GALCO que mida la línea base y el uso real antes de pasar a un plan pago, y resolver antes la verificación de HU-32 y las HU-15/16/18 que completan el módulo de Hojas de vida.
 
 > **Pendiente del equipo:** ajustar los puntos 2 y 4 según los resultados de usabilidad. Si las pruebas muestran fallas críticas, la conclusión operativa debe cambiar a "viable después de los ajustes del Sprint 4".
